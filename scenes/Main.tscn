@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=14 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/Arena.tscn" id="1_arena"]
 [ext_resource type="PackedScene" path="res://scenes/WedgeBot.tscn" id="2_wedgebot"]
@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" path="res://scenes/Crate.tscn" id="4_crate"]
 [ext_resource type="Script" path="res://scripts/Telemetry.gd" id="5_telemetry"]
 [ext_resource type="PackedScene" path="res://scenes/DummyTarget.tscn" id="6_dummy"]
+[ext_resource type="PackedScene" path="res://scenes/PanelDummy.tscn" id="7_paneldummy"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_1"]
 sky_top_color = Color(0.1, 0.14, 0.28, 1)
@@ -66,6 +67,9 @@ mass = 70.0
 
 [node name="DummyTarget" parent="Props" instance=ExtResource("6_dummy")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0.25, -1)
+
+[node name="PanelDummy" parent="Props" instance=ExtResource("7_paneldummy")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0.32, -1)
 
 [node name="ChaseCamera" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.9659, 0.2588, 0, -0.2588, 0.9659, 0, 3.4, 9.5)

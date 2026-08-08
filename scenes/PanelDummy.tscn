@@ -1,0 +1,100 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/ArmorPanel.tscn" id="1_panel"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_foot"]
+size = Vector3(0.16, 0.12, 0.16)
+
+[sub_resource type="BoxMesh" id="BoxMesh_foot"]
+size = Vector3(0.16, 0.12, 0.16)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_core"]
+size = Vector3(0.9, 0.4, 0.9)
+
+[sub_resource type="BoxMesh" id="BoxMesh_core"]
+size = Vector3(0.9, 0.4, 0.9)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_core"]
+albedo_color = Color(0.3, 0.31, 0.34, 1)
+metallic = 0.4
+roughness = 0.65
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_core"]
+friction = 0.6
+bounce = 0.05
+
+; The M1 test rig: a heavy core wearing four bolted-on armour panels, carried on
+; stubby feet. Heavy enough (150 kg) that it stays put and stays hittable rather
+; than skating away, but still a rigid body so the welds see realistic loads.
+;
+; The feet are not decoration. Rest the core straight on the floor and each
+; panel carries a share of 150 kg -- hundreds of newtons of standing contact
+; force, which reads as damage before anything has hit it. Real armour is bolted
+; to a chassis that rides on wheels and bears no weight; these panels do the
+; same, hanging 60 mm clear of the floor where the plow's ramp can reach them.
+[node name="PanelDummy" type="RigidBody3D"]
+mass = 150.0
+physics_material_override = SubResource("PhysicsMaterial_core")
+center_of_mass_mode = 1
+center_of_mass = Vector3(0, -0.12, 0)
+continuous_cd = true
+can_sleep = false
+
+[node name="CoreMesh" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_core")
+surface_material_override/0 = SubResource("StandardMaterial3D_core")
+
+[node name="CoreCollision" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_core")
+
+[node name="FootFLMesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.33, -0.26, -0.33)
+mesh = SubResource("BoxMesh_foot")
+surface_material_override/0 = SubResource("StandardMaterial3D_core")
+
+[node name="FootFL" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.33, -0.26, -0.33)
+shape = SubResource("BoxShape3D_foot")
+
+[node name="FootFRMesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.33, -0.26, -0.33)
+mesh = SubResource("BoxMesh_foot")
+surface_material_override/0 = SubResource("StandardMaterial3D_core")
+
+[node name="FootFR" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.33, -0.26, -0.33)
+shape = SubResource("BoxShape3D_foot")
+
+[node name="FootRLMesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.33, -0.26, 0.33)
+mesh = SubResource("BoxMesh_foot")
+surface_material_override/0 = SubResource("StandardMaterial3D_core")
+
+[node name="FootRL" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.33, -0.26, 0.33)
+shape = SubResource("BoxShape3D_foot")
+
+[node name="FootRRMesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.33, -0.26, 0.33)
+mesh = SubResource("BoxMesh_foot")
+surface_material_override/0 = SubResource("StandardMaterial3D_core")
+
+[node name="FootRR" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.33, -0.26, 0.33)
+shape = SubResource("BoxShape3D_foot")
+
+[node name="PanelFront" parent="." instance=ExtResource("1_panel")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.04, -0.51)
+size = Vector3(0.9, 0.44, 0.06)
+
+[node name="PanelBack" parent="." instance=ExtResource("1_panel")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.04, 0.51)
+size = Vector3(0.9, 0.44, 0.06)
+
+[node name="PanelLeft" parent="." instance=ExtResource("1_panel")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.51, -0.04, 0)
+size = Vector3(0.06, 0.44, 0.9)
+
+[node name="PanelRight" parent="." instance=ExtResource("1_panel")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.51, -0.04, 0)
+size = Vector3(0.06, 0.44, 0.9)
