@@ -1,8 +1,11 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/Arena.tscn" id="1_arena"]
 [ext_resource type="PackedScene" path="res://scenes/WedgeBot.tscn" id="2_wedgebot"]
 [ext_resource type="Script" path="res://scripts/ChaseCamera.gd" id="3_chasecam"]
+[ext_resource type="PackedScene" path="res://scenes/Crate.tscn" id="4_crate"]
+[ext_resource type="Script" path="res://scripts/Telemetry.gd" id="5_telemetry"]
+[ext_resource type="PackedScene" path="res://scenes/DummyTarget.tscn" id="6_dummy"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_1"]
 sky_top_color = Color(0.1, 0.14, 0.28, 1)
@@ -18,6 +21,21 @@ background_mode = 2
 sky = SubResource("Sky_1")
 ambient_light_energy = 0.6
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hud"]
+bg_color = Color(0.04, 0.04, 0.06, 0.72)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="LabelSettings" id="LabelSettings_key"]
+font_size = 13
+font_color = Color(0.58, 0.6, 0.66, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_value"]
+font_size = 13
+font_color = Color(0.92, 0.94, 0.98, 1)
+
 [node name="Main" type="Node3D"]
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
@@ -30,10 +48,54 @@ shadow_enabled = true
 [node name="Arena" parent="." instance=ExtResource("1_arena")]
 
 [node name="WedgeBot" parent="." instance=ExtResource("2_wedgebot")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.35, 3)
+
+[node name="Props" type="Node3D" parent="."]
+
+[node name="CrateLight" parent="Props" instance=ExtResource("4_crate")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0.36, -1)
+mass = 6.0
+
+[node name="CrateMedium" parent="Props" instance=ExtResource("4_crate")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.36, -1)
+mass = 22.0
+
+[node name="CrateHeavy" parent="Props" instance=ExtResource("4_crate")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0.36, -1)
+mass = 70.0
+
+[node name="DummyTarget" parent="Props" instance=ExtResource("6_dummy")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0.25, -1)
 
 [node name="ChaseCamera" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.9659, 0.2588, 0, -0.2588, 0.9659, 0, 3.4, 6.5)
+transform = Transform3D(1, 0, 0, 0, 0.9659, 0.2588, 0, -0.2588, 0.9659, 0, 3.4, 9.5)
 current = true
 script = ExtResource("3_chasecam")
 target_path = NodePath("../WedgeBot")
+
+[node name="Telemetry" type="CanvasLayer" parent="."]
+script = ExtResource("5_telemetry")
+target_path = NodePath("../WedgeBot")
+
+[node name="Panel" type="PanelContainer" parent="Telemetry"]
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 316.0
+offset_bottom = 176.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_hud")
+
+[node name="Margin" type="MarginContainer" parent="Telemetry/Panel"]
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 10
+
+[node name="Rows" type="HBoxContainer" parent="Telemetry/Panel/Margin"]
+theme_override_constants/separation = 14
+
+[node name="Labels" type="Label" parent="Telemetry/Panel/Margin/Rows"]
+custom_minimum_size = Vector2(96, 0)
+label_settings = SubResource("LabelSettings_key")
+
+[node name="Values" type="Label" parent="Telemetry/Panel/Margin/Rows"]
+label_settings = SubResource("LabelSettings_value")
