@@ -43,6 +43,7 @@ func _initialize() -> void:
 	await _bench_straight_line()
 	await _bench_pivot()
 	await _bench_plow()
+	await _bench_damage()
 	quit()
 
 func _report_static() -> void:
@@ -203,12 +204,93 @@ func _charge_crate(crate_name: String) -> void:
 		_drive()
 		await process_frame
 		lift = maxf(lift, crate.global_position.y - rest_y)
-		impulse = maxf(impulse, _bot.peak_impulse)
+		impulse = maxf(impulse, _bot.peak_force)
 
 	var tilt := rad_to_deg(acos(clampf(crate.global_basis.y.dot(Vector3.UP), -1.0, 1.0)))
 	print("[plow vs %s, %.0f kg]" % [crate_name, crate.mass])
 	print("  lifted             %.0f mm" % (lift * 1000.0))
 	print("  displaced          %.2f m" % crate_start.distance_to(crate.global_position))
 	print("  tilted             %.0f deg off level" % tilt)
-	print("  peak impulse       %.1f N·s" % impulse)
+	print("  peak contact force %.0f N" % impulse)
 	print("")
+
+## M1: the damage model. Two things have to hold at once -- a shove must do
+## nothing at all, and a real strike must eventually shear a panel off. A model
+## that only satisfies one of those is not a damage model, it is a threshold.
+##
+## Every panel is tracked rather than a nominated one, so the result does not
+## depend on guessing which face the bot happens to strike.
+func _bench_damage() -> void:
+	var dummy := root.get_node("Main/Props/PanelDummy") as RigidBody3D
+	var panels: Array[ArmorPanel] = []
+	for child in dummy.get_children():
+		if child is ArmorPanel:
+			panels.append(child)
+	var approach := Vector3(dummy.global_position.x, 0.35, dummy.global_position.z)
+
+	_throttle = 0.0
+	_turn = 0.0
+	_bot.reset_to(Transform3D(Basis(), approach + Vector3(0, 0, 2.2)))
+	await _run(60)
+
+	# 1. Lean on it at quarter throttle. Nothing should register anywhere.
+	for _i in 300:  # 2.5 s of steady pushing
+		_bot.drive(0.25, 0.0, TICK)
+		await process_frame
+	print("[damage: 2.5 s shove at quarter throttle]")
+	print("  total damage       %.1f N·s across %d panels" % [_total(panels), panels.size()])
+	print("  verdict            %s"
+		% ("shrugged it off" if _total(panels) == 0.0 else "LEAKING -- tolerance too low"))
+	print("")
+
+	# 2. Now ram it from six metres and count what it takes.
+	print("[damage: full-speed rams, tolerance %.0f N / integrity %.0f N·s]"
+		% [panels[0].tolerance, panels[0].integrity])
+	var hits := 0
+	var broken: ArmorPanel = null
+	while hits < 8 and broken == null:
+		hits += 1
+		var before := _total(panels)
+		_bot.reset_to(Transform3D(Basis(), approach + Vector3(0, 0, 6.0)))
+		_throttle = 0.0
+		await _run(30)
+		var impact := 0.0
+		for _i in 240:
+			_bot.drive(1.0, 0.0, TICK)
+			await process_frame
+			impact = maxf(impact, _bot.peak_force)
+			for panel in panels:
+				if panel.broken and broken == null:
+					broken = panel
+			if broken != null:
+				break
+		print("  ram %d: hit %.0f N -> banked +%.0f N·s, total %.0f%s"
+			% [hits, impact, _total(panels) - before, _total(panels),
+				"   %s SHEARED" % broken.name if broken != null else ""])
+	print("")
+
+	if broken == null:
+		print("  no panel broke in %d rams -- integrity is out of reach" % hits)
+		for panel in panels:
+			print("    %-12s %.0f N·s" % [panel.name, panel.damage])
+		return
+
+	# 3. A detached panel has to behave like debris: still simulated, still
+	# colliding, no longer welded.
+	var settle_start := broken.global_position
+	for _i in 120:
+		_bot.drive(0.0, 0.0, TICK)
+		await process_frame
+	print("[debris: %s]" % broken.name)
+	print("  still in tree      %s" % ("yes" if is_instance_valid(broken) else "no -- it was freed"))
+	print("  weld gone          %s" % ("yes" if broken.get_node_or_null("Joint") == null else "no"))
+	print("  travelled after    %.2f m in 1 s" % settle_start.distance_to(broken.global_position))
+	print("  came to rest       %.0f deg off level"
+		% rad_to_deg(acos(clampf(broken.global_basis.y.dot(Vector3.UP), -1.0, 1.0))))
+	print("")
+
+func _total(panels: Array[ArmorPanel]) -> float:
+	var sum := 0.0
+	for panel in panels:
+		sum += panel.damage
+	return sum
