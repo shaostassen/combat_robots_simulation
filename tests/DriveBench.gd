@@ -23,11 +23,11 @@ var _throttle := 0.0
 var _turn := 0.0
 
 func _initialize() -> void:
-	root.add_child(load("res://scenes/Main.tscn").instantiate())
+	root.add_child(load("res://scenes/Sandbox.tscn").instantiate())
 	# Nodes enter the tree and run _ready deferred, so nothing below may touch
 	# them until a frame has actually gone by.
 	await process_frame
-	_bot = root.get_node("Main/WedgeBot")
+	_bot = root.get_node("Sandbox/WedgeBot")
 	_plow = _bot.get_node("Plow")
 	# Take input out of the loop: the bench commands the drivetrain directly so
 	# results do not depend on a keyboard that headless mode does not have.
@@ -188,7 +188,7 @@ func _bench_plow() -> void:
 
 ## Lines the bot up three metres behind a crate and drives through it.
 func _charge_crate(crate_name: String) -> void:
-	var crate := root.get_node("Main/Props/" + crate_name) as RigidBody3D
+	var crate := root.get_node("Sandbox/Props/" + crate_name) as RigidBody3D
 	_throttle = 0.0
 	_turn = 0.0
 	_bot.reset_to(Transform3D(Basis(), crate.global_position
@@ -221,7 +221,7 @@ func _charge_crate(crate_name: String) -> void:
 ## Every panel is tracked rather than a nominated one, so the result does not
 ## depend on guessing which face the bot happens to strike.
 func _bench_damage() -> void:
-	var dummy := root.get_node("Main/Props/PanelDummy") as RigidBody3D
+	var dummy := root.get_node("Sandbox/Props/PanelDummy") as RigidBody3D
 	var panels: Array[ArmorPanel] = []
 	for child in dummy.get_children():
 		if child is ArmorPanel:

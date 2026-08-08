@@ -85,16 +85,16 @@ func _bench_spin_up() -> void:
 func _load_scene() -> void:
 	if _scene != null:
 		_scene.free()
-	_scene = load("res://scenes/Main.tscn").instantiate()
+	_scene = load("res://scenes/Sandbox.tscn").instantiate()
 	root.add_child(_scene)
 	await process_frame
-	_bot = root.get_node("Main/SpinnerBot")
+	_bot = root.get_node("Sandbox/SpinnerBot")
 	_blade = _bot.get_node("Blade")
 	_bot.set_physics_process(false)
-	(root.get_node("Main/WedgeBot") as CombatBot).set_physics_process(false)
+	(root.get_node("Sandbox/WedgeBot") as CombatBot).set_physics_process(false)
 
 func _bench_strike() -> void:
-	var dummy := root.get_node("Main/Props/PanelDummy") as RigidBody3D
+	var dummy := root.get_node("Sandbox/Props/PanelDummy") as RigidBody3D
 	var panels: Array[ArmorPanel] = []
 	for child in dummy.get_children():
 		if child is ArmorPanel:
@@ -103,7 +103,7 @@ func _bench_strike() -> void:
 
 	for spun: bool in [false, true]:
 		await _load_scene()
-		dummy = root.get_node("Main/Props/PanelDummy")
+		dummy = root.get_node("Sandbox/Props/PanelDummy")
 		panels.clear()
 		for child in dummy.get_children():
 			if child is ArmorPanel:
@@ -157,7 +157,7 @@ func _bench_strike() -> void:
 ## rig at 150 kg; this is the matchup the milestone is actually about, against a
 ## machine of comparable mass that can be sent flying.
 func _bench_versus_wedge() -> void:
-	var wedge := root.get_node("Main/WedgeBot") as CombatBot
+	var wedge := root.get_node("Sandbox/WedgeBot") as CombatBot
 	# Clear lane: the crates sit at x = -4/-6/-8 and the dummies at x = 3/6, so a
 	# wedge thrown down the middle has room to actually fly.
 	var lane := Vector3(0.0, 0.35, 2.0)
