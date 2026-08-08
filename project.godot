@@ -17,6 +17,25 @@ config/features=PackedStringArray("4.4", "Forward Plus")
 [physics]
 
 3d/physics_engine="Jolt Physics"
+; Impacts are the content, so the simulation runs at double the usual rate.
+; 60 Hz smears a spinner strike across a single fat timestep; 120 Hz resolves
+; the contact where it actually happens, and leaves headroom for M2's blade.
+common/physics_ticks_per_second=120
+; Wheels and (later) welded armour panels are stiff constraint chains. The
+; stock 10/2 solver lets them stretch visibly under load.
+jolt_physics_3d/simulation/velocity_steps=16
+jolt_physics_3d/simulation/position_steps=4
+; Bodies are allowed to rest this far inside each other before the solver pushes
+; back. At the stock 20 mm the wheels sink far enough that the bot's ride height
+; drops below its own plow clearance and the wedge scrapes the floor.
+jolt_physics_3d/simulation/penetration_slop=0.005
+; Jolt inflates every convex shape by this fraction of its smallest axis. At
+; the stock 0.08 the plow's leading edge gains ~24 mm of invisible padding and
+; stops being able to get under anything -- which is the bot's entire job.
+jolt_physics_3d/collisions/collision_margin_fraction=0.02
+; Stock cap is 47 rad/s (450 RPM). A real vertical spinner lives at 2000-4000
+; RPM, so raise it now rather than debugging a silently clamped blade in M2.
+jolt_physics_3d/limits/max_angular_velocity=524.0
 
 [rendering]
 
