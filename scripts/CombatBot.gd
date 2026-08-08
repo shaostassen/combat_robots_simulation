@@ -1,9 +1,12 @@
 extends RigidBody3D
-class_name WedgeBot
-## Skid-steer combat-robot drivetrain. Reads WASD directly (no InputMap setup
+class_name CombatBot
+## Skid-steer combat-robot drivetrain, shared by every archetype. Reads WASD directly (no InputMap setup
 ## required) and mixes throttle/turn into per-side wheel speeds, which drive the
 ## wheels through motorised joints -- tyre friction against the floor is what
 ## actually moves the chassis, exactly like a real skid-steer bot.
+##
+## Archetypes subclass this and bolt their weapon on top; the wedge adds nothing
+## at all, since its weapon is its geometry.
 ##
 ## The wheels are driven as brushed DC motors rather than as fixed torque
 ## sources: available torque falls off linearly as a wheel approaches its
@@ -51,8 +54,11 @@ var peak_force: float = 0.0
 
 var _left_wheels: Array[RigidBody3D] = []
 var _right_wheels: Array[RigidBody3D] = []
-var _wheels: Array[RigidBody3D] = []
-var _wheel_offsets: Array[Transform3D] = []
+## Every rigid body bolted to this chassis -- wheels, weapon, armour. Tracked as
+## one list so a reset moves the whole machine; teleporting the chassis and
+## leaving a joined body behind lets the joint snap it back with real violence.
+var _attached: Array[RigidBody3D] = []
+var _attached_offsets: Array[Transform3D] = []
 var _spawn_transform: Transform3D
 var _throttle: float = 0.0
 var _turn: float = 0.0
@@ -62,11 +68,14 @@ func _ready() -> void:
 	_spawn_transform = global_transform
 	_left_wheels = [$FrontLeftWheel, $RearLeftWheel]
 	_right_wheels = [$FrontRightWheel, $RearRightWheel]
-	_wheels = _left_wheels + _right_wheels
 
 	var to_local := global_transform.affine_inverse()
-	for wheel in _wheels:
-		_wheel_offsets.append(to_local * wheel.global_transform)
+	for child in get_children():
+		if child is RigidBody3D:
+			_attached.append(child)
+			_attached_offsets.append(to_local * (child as RigidBody3D).global_transform)
+
+	for wheel in _left_wheels + _right_wheels:
 		var joint := wheel.get_node("Joint") as Generic6DOFJoint3D
 		joint.set_flag_x(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_LIMIT, false)
 		joint.set_flag_x(Generic6DOFJoint3D.FLAG_ENABLE_MOTOR, true)
@@ -163,13 +172,13 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 func reset_to_spawn() -> void:
 	reset_to(_spawn_transform)
 
-## Teleports the whole bot, upright and at rest. The wheels are separate bodies,
-## so they have to be placed too -- move the chassis alone and the joints snap it
-## straight back out of position.
+## Teleports the whole bot, upright and at rest -- chassis and everything joined
+## to it. Move the chassis alone and the joints snap it straight back out of
+## position, or fling a heavy weapon across the arena.
 func reset_to(target: Transform3D) -> void:
 	_place(self, target)
-	for i in _wheels.size():
-		_place(_wheels[i], target * _wheel_offsets[i])
+	for i in _attached.size():
+		_place(_attached[i], target * _attached_offsets[i])
 	_throttle = 0.0
 	_turn = 0.0
 	peak_force = 0.0

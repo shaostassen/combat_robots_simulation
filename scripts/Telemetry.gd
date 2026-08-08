@@ -14,7 +14,7 @@ extends CanvasLayer
 @onready var _labels: Label = $Panel/Margin/Rows/Labels
 @onready var _values: Label = $Panel/Margin/Rows/Values
 
-var _bot: WedgeBot
+var _bot: CombatBot
 
 const ROWS: Array[String] = [
 	"speed", "yaw rate", "slip L / R", "drive torque", "pitch / roll",
@@ -23,7 +23,7 @@ const ROWS: Array[String] = [
 
 func _ready() -> void:
 	if target_path != NodePath():
-		_bot = get_node_or_null(target_path) as WedgeBot
+		_bot = get_node_or_null(target_path) as CombatBot
 	_labels.text = "\n".join(ROWS)
 
 func _unhandled_key_input(event: InputEvent) -> void:
