@@ -41,6 +41,10 @@ class_name CombatBot
 @export var input_ramp: float = 5.0
 ## Flip if the bot drives backwards relative to its plow.
 @export var reverse_direction: bool = false
+## When false the bot ignores the keyboard entirely and waits to be driven by
+## something else -- a BotAI, or a bench. Both go through `drive`, so an AI
+## opponent is under exactly the same physical limits the player is.
+@export var player_controlled: bool = true
 
 ## Live telemetry, read by the HUD. Kept as plain fields rather than signals
 ## because the overlay samples once a frame and nothing else cares.
@@ -86,6 +90,8 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		reset_to_spawn()
 
 func _physics_process(delta: float) -> void:
+	if not player_controlled:
+		return
 	drive(
 		float(Input.is_physical_key_pressed(KEY_W))
 			- float(Input.is_physical_key_pressed(KEY_S)),
@@ -114,6 +120,12 @@ func drive(throttle: float, turn: float, delta: float) -> void:
 	torque_right = _drive_side(_right_wheels, direction * right * free_speed)
 
 	_update_telemetry()
+
+## Whether the driver is actually asking for movement. The knockout rule counts
+## a bot out for being commanded and failing to move -- a bot sitting still on
+## purpose is not immobilised, it is just parked.
+func is_commanded() -> bool:
+	return maxf(absf(_throttle), absf(_turn)) > 0.1
 
 ## Commands one side's wheels and returns the torque limit that was applied.
 func _drive_side(wheels: Array[RigidBody3D], target: float) -> float:
