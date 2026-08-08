@@ -1,0 +1,117 @@
+extends Node
+class_name BotAI
+## Utility driver for one bot. Sits as a child of the chassis it drives.
+##
+## Deliberately not clever: no learning, no pathfinding, no perception model.
+## The arena is an open box, so "point at the enemy and commit" is already a
+## credible opponent, and everything past that is per-archetype judgement about
+## *when* to commit.
+##
+## It cheats openly rather than subtly -- it reads the enemy's exact position
+## straight out of the scene -- but only re-reads it every `reaction_time`. That
+## stale aim is what makes it miss a moving target and feel like a driver rather
+## than a turret, and it is far cheaper than simulating senses it does not have.
+##
+## Crucially it steers through `CombatBot.drive`, the same call the keyboard
+## goes through, so it is bound by the same traction, torque and inertia the
+## player is. It cannot cheat at physics, only at knowing.
+
+enum State {
+	CHARGING,  ## Committed: full throttle at the enemy.
+	WINDING,   ## Backing off to rebuild weapon energy before re-engaging.
+}
+
+@export var enemy_path: NodePath
+## Seconds between decisions. This is the whole difficulty knob: shorter aims
+## better and tracks harder.
+@export var reaction_time: float = 0.18
+## Steer-only below this alignment, rather than driving off at a tangent.
+@export var engage_angle: float = 30.0
+@export_group("Weapon handling")
+## Charge once the blade holds this fraction of its full energy.
+@export var commit_energy: float = 0.85
+## Break off below this. Energy goes as the square of blade rate, so a bot that
+## re-engages at half rate arrives with a quarter of the punch -- backing off to
+## re-spin is nearly always the better trade.
+@export var retreat_energy: float = 0.45
+
+var state: State = State.CHARGING
+## Last command issued, exposed for the HUD and the bench.
+var throttle: float = 0.0
+var turn: float = 0.0
+
+var _bot: CombatBot
+var _spinner: SpinnerBot
+var _enemy: Node3D
+var _aim: Vector3
+var _since_decision: float = 0.0
+
+func _ready() -> void:
+	_bot = get_parent() as CombatBot
+	_spinner = _bot as SpinnerBot
+	_enemy = get_node_or_null(enemy_path) as Node3D
+	if _bot != null:
+		_aim = _bot.global_position
+
+func _physics_process(delta: float) -> void:
+	if _bot == null or _enemy == null:
+		return
+
+	_since_decision += delta
+	if _since_decision >= reaction_time:
+		_since_decision = 0.0
+		_aim = _enemy.global_position
+
+	var to_enemy := _aim - _bot.global_position
+	to_enemy.y = 0.0
+	var distance := to_enemy.length()
+	if distance < 0.01:
+		return
+
+	# Signed bearing to the target: negative means it is off to the right, which
+	# is the direction a positive turn command sends us.
+	var bearing := rad_to_deg((-_bot.global_basis.z).signed_angle_to(to_enemy, Vector3.UP))
+
+	# A plan is a throttle plus the bearing to hold: 0 means drive straight at
+	# the enemy, an offset means arc around them.
+	var plan := _plan(distance)
+	var aim_error := bearing - plan.y
+	turn = clampf(-aim_error / engage_angle, -1.0, 1.0)
+	throttle = plan.x
+	if absf(aim_error) > engage_angle:
+		# Badly off-aim: turn first rather than driving away at a tangent.
+		throttle *= 0.25
+
+	_bot.drive(throttle, turn, delta)
+
+## Returns (throttle, bearing to hold in degrees) for this archetype.
+##
+## The wedge has nothing to manage -- its weapon is its geometry and it is always
+## ready, so it simply commits. The spinner has to decide whether it is armed.
+func _plan(distance: float) -> Vector2:
+	if _spinner == null:
+		return Vector2(1.0, 0.0)
+
+	# Asked fresh rather than cached at _ready: this node is a *child* of the bot,
+	# so it readies first, back when the blade's inertia was still its default.
+	# Caching it here read the full-energy yardstick five times too high, and the
+	# spinner spent entire matches circling because it never believed it was
+	# armed.
+	var charged := _spinner.blade_energy / maxf(_spinner.full_energy(), 1.0)
+	if state == State.CHARGING and charged < retreat_energy:
+		state = State.WINDING
+	elif state == State.WINDING and charged >= commit_energy:
+		state = State.CHARGING
+
+	# The weapon runs constantly. The blade is the spinner's whole threat, and
+	# spin-up takes seconds it will not have once the fight is on.
+	_spinner.spin_weapon(true, get_physics_process_delta_time())
+
+	if state == State.WINDING:
+		# Circle at range rather than stand off. Standing still while the blade
+		# comes up is how a spinner gets counted out doing nothing, and a bot
+		# that stops moving is one the referee is already counting. Arcing keeps
+		# the range open, keeps the weapon pointed the right way, and keeps the
+		# wheels turning.
+		return Vector2(0.55, 60.0 if distance < 6.0 else 25.0)
+	return Vector2(1.0, 0.0)
