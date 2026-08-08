@@ -50,7 +50,11 @@ func _unhandled_key_input(event: InputEvent) -> void:
 
 func _physics_process(delta: float) -> void:
 	super(delta)
-	spin_weapon(weapon_active, delta)
+	# Under AI control the weapon is the AI's to command. Running this anyway
+	# would clobber its call with weapon_active's stale `false` every tick, and
+	# the blade would never leave a standstill.
+	if player_controlled:
+		spin_weapon(weapon_active, delta)
 
 ## Drives the weapon motor. Separated from input for the same reason `drive` is:
 ## the bench needs the real thing, not an imitation of it.
@@ -68,6 +72,11 @@ func spin_weapon(active: bool, delta: float) -> void:
 
 	blade_rate = blade_speed_now()
 	blade_energy = 0.5 * _blade_inertia * blade_rate * blade_rate
+
+## Energy the blade holds at its commanded rate -- the yardstick for "fully
+## spun", so callers can judge readiness as a fraction instead of in joules.
+func full_energy() -> float:
+	return 0.5 * _blade_inertia * blade_speed * blade_speed
 
 ## Signed blade rate about the hinge, relative to the chassis. Positive is
 ## up-cutting: at the blade's forward-most point the edge is travelling upward,
