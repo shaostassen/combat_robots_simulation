@@ -1,0 +1,28 @@
+[gd_scene load_steps=5 format=3]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_crate"]
+size = Vector3(0.7, 0.7, 0.7)
+
+[sub_resource type="BoxMesh" id="BoxMesh_crate"]
+size = Vector3(0.7, 0.7, 0.7)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_crate"]
+albedo_color = Color(0.45, 0.42, 0.36, 1)
+metallic = 0.15
+roughness = 0.75
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_crate"]
+friction = 0.7
+bounce = 0.05
+
+[node name="Crate" type="RigidBody3D"]
+mass = 20.0
+physics_material_override = SubResource("PhysicsMaterial_crate")
+continuous_cd = true
+
+[node name="CrateMesh" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_crate")
+surface_material_override/0 = SubResource("StandardMaterial3D_crate")
+
+[node name="CrateCollision" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_crate")

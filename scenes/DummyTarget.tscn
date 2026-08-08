@@ -1,0 +1,71 @@
+[gd_scene load_steps=6 format=3]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_body"]
+size = Vector3(0.9, 0.3, 0.9)
+
+[sub_resource type="BoxMesh" id="BoxMesh_body"]
+size = Vector3(0.9, 0.3, 0.9)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_foot"]
+size = Vector3(0.14, 0.1, 0.14)
+
+[sub_resource type="BoxMesh" id="BoxMesh_foot"]
+size = Vector3(0.14, 0.1, 0.14)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_body"]
+albedo_color = Color(0.22, 0.4, 0.62, 1)
+metallic = 0.5
+roughness = 0.45
+
+; A stand-in opponent: a chassis carried 100 mm off the floor on four stubby
+; feet. Crates sit flat on the ground and so can only ever be shoved -- nothing
+; can get under them. This has the ground clearance a real bot has, which is the
+; only way to test whether the plow actually wedges rather than just pushes.
+[node name="DummyTarget" type="RigidBody3D"]
+mass = 40.0
+center_of_mass_mode = 1
+center_of_mass = Vector3(0, -0.08, 0)
+continuous_cd = true
+
+[node name="BodyMesh" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_body")
+surface_material_override/0 = SubResource("StandardMaterial3D_body")
+
+[node name="BodyCollision" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_body")
+
+[node name="FootFLMesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.33, -0.2, -0.33)
+mesh = SubResource("BoxMesh_foot")
+surface_material_override/0 = SubResource("StandardMaterial3D_body")
+
+[node name="FootFL" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.33, -0.2, -0.33)
+shape = SubResource("BoxShape3D_foot")
+
+[node name="FootFRMesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.33, -0.2, -0.33)
+mesh = SubResource("BoxMesh_foot")
+surface_material_override/0 = SubResource("StandardMaterial3D_body")
+
+[node name="FootFR" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.33, -0.2, -0.33)
+shape = SubResource("BoxShape3D_foot")
+
+[node name="FootRLMesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.33, -0.2, 0.33)
+mesh = SubResource("BoxMesh_foot")
+surface_material_override/0 = SubResource("StandardMaterial3D_body")
+
+[node name="FootRL" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.33, -0.2, 0.33)
+shape = SubResource("BoxShape3D_foot")
+
+[node name="FootRRMesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.33, -0.2, 0.33)
+mesh = SubResource("BoxMesh_foot")
+surface_material_override/0 = SubResource("StandardMaterial3D_body")
+
+[node name="FootRR" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.33, -0.2, 0.33)
+shape = SubResource("BoxShape3D_foot")
