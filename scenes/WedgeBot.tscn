@@ -1,25 +1,23 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scripts/WedgeBot.gd" id="1_wedge"]
+[ext_resource type="Script" path="res://scripts/PlowGeometry.gd" id="2_plow"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_hull"]
-size = Vector3(1.2, 0.4, 1.3)
+size = Vector3(1.2, 0.4, 1.0)
 
 [sub_resource type="BoxMesh" id="BoxMesh_hull"]
-size = Vector3(1.2, 0.4, 1.3)
+size = Vector3(1.2, 0.4, 1.0)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hull"]
 albedo_color = Color(0.75, 0.35, 0.05, 1)
 metallic = 0.4
 roughness = 0.5
 
-[sub_resource type="BoxMesh" id="BoxMesh_nose"]
-size = Vector3(1.2, 0.06, 0.6)
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_nose"]
-albedo_color = Color(0.6, 0.6, 0.65, 1)
-metallic = 0.8
-roughness = 0.3
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_plow"]
+albedo_color = Color(0.62, 0.63, 0.68, 1)
+metallic = 0.9
+roughness = 0.22
 
 [sub_resource type="CylinderShape3D" id="CylinderShape3D_wheel"]
 radius = 0.28
@@ -35,11 +33,27 @@ albedo_color = Color(0.05, 0.05, 0.05, 1)
 roughness = 0.9
 
 [sub_resource type="PhysicsMaterial" id="PhysicsMaterial_wheel"]
-friction = 1.3
+friction = 1.6
 rough = true
+bounce = 0.0
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_chassis"]
+friction = 0.25
+bounce = 0.05
 
 [node name="WedgeBot" type="RigidBody3D"]
 mass = 45.0
+physics_material_override = SubResource("PhysicsMaterial_chassis")
+center_of_mass_mode = 1
+center_of_mass = Vector3(0, -0.18, -0.04)
+continuous_cd = true
+contact_monitor = true
+max_contacts_reported = 16
+can_sleep = false
+linear_damp_mode = 1
+linear_damp = 0.0
+angular_damp_mode = 1
+angular_damp = 0.2
 script = ExtResource("1_wedge")
 
 [node name="ChassisMesh" type="MeshInstance3D" parent="."]
@@ -49,15 +63,22 @@ surface_material_override/0 = SubResource("StandardMaterial3D_hull")
 [node name="ChassisCollision" type="CollisionShape3D" parent="."]
 shape = SubResource("BoxShape3D_hull")
 
-[node name="NoseMesh" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.9659, -0.2588, 0, 0.2588, 0.9659, 0, -0.05, -0.95)
-mesh = SubResource("BoxMesh_nose")
-surface_material_override/0 = SubResource("StandardMaterial3D_nose")
+[node name="Plow" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.315, -1.06)
+script = ExtResource("2_plow")
+width = 1.2
+run = 0.6
+rise = 0.3
+edge_thickness = 0.006
+
+[node name="Mesh" type="MeshInstance3D" parent="Plow"]
+surface_material_override/0 = SubResource("StandardMaterial3D_plow")
 
 [node name="FrontLeftWheel" type="RigidBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.66, -0.05, -0.5)
-mass = 3.0
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.72, -0.05, -0.32)
+mass = 1.2
 physics_material_override = SubResource("PhysicsMaterial_wheel")
+can_sleep = false
 
 [node name="WheelMesh" type="MeshInstance3D" parent="FrontLeftWheel"]
 transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0)
@@ -89,12 +110,13 @@ angular_limit_z/upper_angle = 0.0
 angular_limit_z/lower_angle = 0.0
 angular_motor_x/enabled = true
 angular_motor_x/target_velocity = 0.0
-angular_motor_x/force_limit = 90.0
+angular_motor_x/force_limit = 0.0
 
 [node name="FrontRightWheel" type="RigidBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.66, -0.05, -0.5)
-mass = 3.0
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.72, -0.05, -0.32)
+mass = 1.2
 physics_material_override = SubResource("PhysicsMaterial_wheel")
+can_sleep = false
 
 [node name="WheelMesh" type="MeshInstance3D" parent="FrontRightWheel"]
 transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0)
@@ -126,12 +148,13 @@ angular_limit_z/upper_angle = 0.0
 angular_limit_z/lower_angle = 0.0
 angular_motor_x/enabled = true
 angular_motor_x/target_velocity = 0.0
-angular_motor_x/force_limit = 90.0
+angular_motor_x/force_limit = 0.0
 
 [node name="RearLeftWheel" type="RigidBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.66, -0.05, 0.5)
-mass = 3.0
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.72, -0.05, 0.32)
+mass = 1.2
 physics_material_override = SubResource("PhysicsMaterial_wheel")
+can_sleep = false
 
 [node name="WheelMesh" type="MeshInstance3D" parent="RearLeftWheel"]
 transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0)
@@ -163,12 +186,13 @@ angular_limit_z/upper_angle = 0.0
 angular_limit_z/lower_angle = 0.0
 angular_motor_x/enabled = true
 angular_motor_x/target_velocity = 0.0
-angular_motor_x/force_limit = 90.0
+angular_motor_x/force_limit = 0.0
 
 [node name="RearRightWheel" type="RigidBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.66, -0.05, 0.5)
-mass = 3.0
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.72, -0.05, 0.32)
+mass = 1.2
 physics_material_override = SubResource("PhysicsMaterial_wheel")
+can_sleep = false
 
 [node name="WheelMesh" type="MeshInstance3D" parent="RearRightWheel"]
 transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0)
@@ -200,4 +224,4 @@ angular_limit_z/upper_angle = 0.0
 angular_limit_z/lower_angle = 0.0
 angular_motor_x/enabled = true
 angular_motor_x/target_velocity = 0.0
-angular_motor_x/force_limit = 90.0
+angular_motor_x/force_limit = 0.0
