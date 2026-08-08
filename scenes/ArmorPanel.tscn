@@ -1,0 +1,51 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/ArmorPanel.gd" id="1_panel"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_panel"]
+albedo_color = Color(0.68, 0.7, 0.74, 1)
+metallic = 0.85
+roughness = 0.32
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_panel"]
+friction = 0.4
+bounce = 0.1
+
+; Mesh and collider are generated from `size` by the script, so a panel is
+; resized by editing one vector rather than by keeping three resources in sync.
+; The joint's node_a resolves to the grandparent, so a panel must be a direct
+; child of the chassis body it is welded to.
+[node name="ArmorPanel" type="RigidBody3D"]
+mass = 3.0
+physics_material_override = SubResource("PhysicsMaterial_panel")
+continuous_cd = true
+contact_monitor = true
+max_contacts_reported = 8
+script = ExtResource("1_panel")
+
+[node name="Mesh" type="MeshInstance3D" parent="."]
+material_override = SubResource("StandardMaterial3D_panel")
+
+[node name="Collision" type="CollisionShape3D" parent="."]
+
+[node name="Joint" type="Generic6DOFJoint3D" parent="."]
+node_a = NodePath("../..")
+node_b = NodePath("..")
+linear_limit_x/enabled = true
+linear_limit_x/upper_distance = 0.0
+linear_limit_x/lower_distance = 0.0
+linear_limit_y/enabled = true
+linear_limit_y/upper_distance = 0.0
+linear_limit_y/lower_distance = 0.0
+linear_limit_z/enabled = true
+linear_limit_z/upper_distance = 0.0
+linear_limit_z/lower_distance = 0.0
+angular_limit_x/enabled = true
+angular_limit_x/upper_angle = 0.0
+angular_limit_x/lower_angle = 0.0
+angular_limit_y/enabled = true
+angular_limit_y/upper_angle = 0.0
+angular_limit_y/lower_angle = 0.0
+angular_limit_z/enabled = true
+angular_limit_z/upper_angle = 0.0
+angular_limit_z/lower_angle = 0.0
