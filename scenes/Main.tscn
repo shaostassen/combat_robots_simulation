@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=15 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/Arena.tscn" id="1_arena"]
 [ext_resource type="PackedScene" path="res://scenes/WedgeBot.tscn" id="2_wedgebot"]
@@ -7,6 +7,7 @@
 [ext_resource type="Script" path="res://scripts/Telemetry.gd" id="5_telemetry"]
 [ext_resource type="PackedScene" path="res://scenes/DummyTarget.tscn" id="6_dummy"]
 [ext_resource type="PackedScene" path="res://scenes/PanelDummy.tscn" id="7_paneldummy"]
+[ext_resource type="PackedScene" path="res://scenes/SpinnerBot.tscn" id="8_spinner"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_1"]
 sky_top_color = Color(0.1, 0.14, 0.28, 1)
@@ -50,6 +51,9 @@ shadow_enabled = true
 
 [node name="WedgeBot" parent="." instance=ExtResource("2_wedgebot")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.35, 3)
+
+[node name="SpinnerBot" parent="." instance=ExtResource("8_spinner")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0.35, 6)
 
 [node name="Props" type="Node3D" parent="."]
 

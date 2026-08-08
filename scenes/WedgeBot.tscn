@@ -1,6 +1,7 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=13 format=3]
 
-[ext_resource type="Script" path="res://scripts/WedgeBot.gd" id="1_wedge"]
+[ext_resource type="Script" path="res://scripts/CombatBot.gd" id="1_wedge"]
+[ext_resource type="PackedScene" path="res://scenes/ArmorPanel.tscn" id="3_panel"]
 [ext_resource type="Script" path="res://scripts/PlowGeometry.gd" id="2_plow"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_hull"]
@@ -225,3 +226,13 @@ angular_limit_z/lower_angle = 0.0
 angular_motor_x/enabled = true
 angular_motor_x/target_velocity = 0.0
 angular_motor_x/force_limit = 0.0
+
+[node name="PanelTop" parent="." instance=ExtResource("3_panel")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.23, 0)
+mass = 2.0
+size = Vector3(1.2, 0.06, 1)
+
+[node name="PanelRear" parent="." instance=ExtResource("3_panel")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.53)
+mass = 2.0
+size = Vector3(1.2, 0.3, 0.06)
