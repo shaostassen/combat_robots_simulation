@@ -47,7 +47,7 @@ var slip_left: float = 0.0
 var slip_right: float = 0.0
 var torque_left: float = 0.0
 var torque_right: float = 0.0
-var peak_impulse: float = 0.0
+var peak_force: float = 0.0
 
 var _left_wheels: Array[RigidBody3D] = []
 var _right_wheels: Array[RigidBody3D] = []
@@ -56,7 +56,7 @@ var _wheel_offsets: Array[Transform3D] = []
 var _spawn_transform: Transform3D
 var _throttle: float = 0.0
 var _turn: float = 0.0
-var _frame_impulse: float = 0.0
+var _frame_force: float = 0.0
 
 func _ready() -> void:
 	_spawn_transform = global_transform
@@ -145,14 +145,20 @@ func _update_telemetry() -> void:
 	slip_right = direction * _wheel_speed(_right_wheels[0]) * wheel_radius - ground_speed
 
 	# Hold the frame's peak, then bleed it so a big hit stays readable for a
-	# moment instead of flashing past in one physics tick. This accumulator is
-	# also the hook M1's damage model will read from.
-	peak_impulse = maxf(_frame_impulse, peak_impulse * 0.94)
-	_frame_impulse = 0.0
+	# moment instead of flashing past in one physics tick.
+	peak_force = maxf(_frame_force, peak_force * 0.94)
+	_frame_force = 0.0
 
+## Totals the tick's contact impulses into the force behind them -- the same
+## measure ArmorPanel does damage from, so the HUD reads in the units that
+## actually decide whether something breaks.
 func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
+	if state.step <= 0.0:
+		return
+	var impulse := 0.0
 	for i in state.get_contact_count():
-		_frame_impulse = maxf(_frame_impulse, state.get_contact_impulse(i).length())
+		impulse += state.get_contact_impulse(i).length()
+	_frame_force = maxf(_frame_force, impulse / state.step)
 
 func reset_to_spawn() -> void:
 	reset_to(_spawn_transform)
@@ -166,8 +172,8 @@ func reset_to(target: Transform3D) -> void:
 		_place(_wheels[i], target * _wheel_offsets[i])
 	_throttle = 0.0
 	_turn = 0.0
-	peak_impulse = 0.0
-	_frame_impulse = 0.0
+	peak_force = 0.0
+	_frame_force = 0.0
 
 func _place(body: RigidBody3D, target: Transform3D) -> void:
 	body.linear_velocity = Vector3.ZERO

@@ -18,7 +18,7 @@ var _bot: WedgeBot
 
 const ROWS: Array[String] = [
 	"speed", "yaw rate", "slip L / R", "drive torque", "pitch / roll",
-	"peak impulse", "physics", "render",
+	"peak hit", "physics", "render",
 ]
 
 func _ready() -> void:
@@ -50,7 +50,7 @@ func _process(_delta: float) -> void:
 		"%5.2f / %5.2f m/s" % [_bot.slip_left, _bot.slip_right],
 		"%5.1f / %5.1f N·m" % [_bot.torque_left, _bot.torque_right],
 		"%5.1f / %5.1f deg%s" % [pitch, roll, inverted],
-		"%6.1f N·s" % _bot.peak_impulse,
+		"%6.0f N" % _bot.peak_force,
 		"%d Hz" % Engine.physics_ticks_per_second,
 		"%d fps" % Engine.get_frames_per_second(),
 	])
