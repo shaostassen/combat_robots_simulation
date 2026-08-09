@@ -75,6 +75,21 @@ func _initialize() -> void:
 		% [_damage(wedge), _damage(spinner)])
 	print("  panels shorn       wedge %d, spinner %d" % [_shorn(wedge), _shorn(spinner)])
 	print("")
+	# The kill cam drags Engine.time_scale down globally. If it ever fails to put
+	# it back the game is permanently in slow motion, and nothing else in the
+	# project would notice -- so check it explicitly.
+	var killcam := scene.get_node_or_null("KillCam") as KillCam
+	var fired := killcam != null and killcam.active
+	var frames := 0
+	while killcam != null and killcam.active and frames < 200000:
+		await process_frame
+		frames += 1
+	print("[kill cam]")
+	print("  triggered          %s" % ("yes" if fired else "no -- draw, or no loser to watch"))
+	print("  time scale after   %.2f%s" % [Engine.time_scale,
+		"" if is_equal_approx(Engine.time_scale, 1.0) else "   <-- STUCK IN SLOW MOTION"])
+	print("")
+
 	var verdict := "reached a result"
 	if elapsed >= 200.0:
 		verdict = "NEVER ENDED"
