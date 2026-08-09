@@ -61,6 +61,10 @@ func _physics_process(delta: float) -> void:
 		Phase.DECIDED:
 			pass
 
+## The beaten machine -- what the kill cam wants to look at. Null on a draw.
+func loser() -> CombatBot:
+	return _other_than(winner) if winner != null else null
+
 ## Seconds each bot has been counted out for, for the HUD.
 func count_on(bot: CombatBot) -> float:
 	var index := _bots.find(bot)

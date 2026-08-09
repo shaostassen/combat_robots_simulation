@@ -4,6 +4,9 @@ extends CanvasLayer
 
 @export var match_path: NodePath
 @export var player_path: NodePath
+## Optional. While the replay is running the result is held back, so the banner
+## lands after the slow-motion rather than talking over it.
+@export var killcam_path: NodePath
 
 @onready var _banner: Label = $Centre/Banner
 @onready var _status: Label = $Centre/Status
@@ -11,15 +14,19 @@ extends CanvasLayer
 
 var _match: Match
 var _player: CombatBot
+var _killcam: KillCam
 
 func _ready() -> void:
 	_match = get_node_or_null(match_path) as Match
 	_player = get_node_or_null(player_path) as CombatBot
+	_killcam = get_node_or_null(killcam_path) as KillCam
 	_hint.text = ""
 
 func _unhandled_key_input(event: InputEvent) -> void:
 	var key := event as InputEventKey
 	if key == null or not key.pressed or key.echo:
+		return
+	if _killcam != null and _killcam.active:
 		return
 	if _match != null and _match.phase == Match.Phase.DECIDED \
 			and key.physical_keycode == KEY_ENTER:
@@ -41,6 +48,11 @@ func _process(_delta: float) -> void:
 			_status.text = "%d:%02d" % [int(_match.clock) / 60, int(_match.clock) % 60]
 			_hint.text = _count_text()
 		Match.Phase.DECIDED:
+			if _killcam != null and _killcam.active:
+				_banner.text = ""
+				_status.text = ""
+				_hint.text = ""
+				return
 			if _match.winner == null:
 				_banner.text = "DRAW"
 			else:
