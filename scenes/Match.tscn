@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=14 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/Arena.tscn" id="1_arena"]
 [ext_resource type="PackedScene" path="res://scenes/WedgeBot.tscn" id="2_wedge"]
@@ -8,6 +8,7 @@
 [ext_resource type="Script" path="res://scripts/Match.gd" id="6_match"]
 [ext_resource type="Script" path="res://scripts/MatchUI.gd" id="7_matchui"]
 [ext_resource type="Script" path="res://scripts/Telemetry.gd" id="8_telemetry"]
+[ext_resource type="Script" path="res://scripts/KillCam.gd" id="9_killcam"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_1"]
 sky_top_color = Color(0.1, 0.14, 0.28, 1)
@@ -21,7 +22,24 @@ sky_material = SubResource("ProceduralSkyMaterial_1")
 [sub_resource type="Environment" id="Environment_1"]
 background_mode = 2
 sky = SubResource("Sky_1")
-ambient_light_energy = 0.6
+ambient_light_energy = 0.35
+tonemap_mode = 3
+tonemap_white = 6.0
+ssao_enabled = true
+ssao_intensity = 1.4
+sdfgi_enabled = true
+sdfgi_bounce_feedback = 0.5
+glow_enabled = true
+glow_intensity = 0.9
+glow_bloom = 0.15
+glow_hdr_threshold = 1.1
+fog_enabled = true
+fog_light_color = Color(0.36, 0.38, 0.46, 1)
+fog_density = 0.004
+volumetric_fog_enabled = true
+volumetric_fog_density = 0.018
+volumetric_fog_emission = Color(0.16, 0.17, 0.22, 1)
+volumetric_fog_length = 48.0
 
 [sub_resource type="LabelSettings" id="LabelSettings_banner"]
 font_size = 64
@@ -37,6 +55,40 @@ environment = SubResource("Environment_1")
 [node name="Sun" type="DirectionalLight3D" parent="."]
 transform = Transform3D(0.8236, -0.4131, 0.3893, 0, 0.6862, 0.7274, -0.5672, -0.5991, 0.5651, 0, 8, 0)
 shadow_enabled = true
+
+[node name="Rig" type="Node3D" parent="."]
+
+[node name="SpotNE" type="SpotLight3D" parent="Rig"]
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 5.5, 7.5, 5.5)
+light_color = Color(1, 0.94, 0.85, 1)
+light_energy = 6.0
+shadow_enabled = true
+spot_range = 22.0
+spot_angle = 55.0
+
+[node name="SpotNW" type="SpotLight3D" parent="Rig"]
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, -5.5, 7.5, 5.5)
+light_color = Color(1, 0.94, 0.85, 1)
+light_energy = 6.0
+shadow_enabled = true
+spot_range = 22.0
+spot_angle = 55.0
+
+[node name="SpotSE" type="SpotLight3D" parent="Rig"]
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 5.5, 7.5, -5.5)
+light_color = Color(0.86, 0.9, 1, 1)
+light_energy = 6.0
+shadow_enabled = true
+spot_range = 22.0
+spot_angle = 55.0
+
+[node name="SpotSW" type="SpotLight3D" parent="Rig"]
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, -5.5, 7.5, -5.5)
+light_color = Color(0.86, 0.9, 1, 1)
+light_energy = 6.0
+shadow_enabled = true
+spot_range = 22.0
+spot_angle = 55.0
 
 [node name="Arena" parent="." instance=ExtResource("1_arena")]
 
@@ -56,6 +108,12 @@ transform = Transform3D(1, 0, 0, 0, 0.9659, 0.2588, 0, -0.2588, 0.9659, 0, 3.4, 
 current = true
 script = ExtResource("4_chasecam")
 target_path = NodePath("../Wedge")
+
+[node name="KillCam" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.4, 12.5)
+script = ExtResource("9_killcam")
+match_path = NodePath("../MatchLoop")
+chase_path = NodePath("../ChaseCamera")
 
 [node name="MatchLoop" type="Node" parent="."]
 script = ExtResource("6_match")
@@ -89,6 +147,7 @@ custom_minimum_size = Vector2(96, 0)
 script = ExtResource("7_matchui")
 match_path = NodePath("../MatchLoop")
 player_path = NodePath("../Wedge")
+killcam_path = NodePath("../KillCam")
 
 [node name="Centre" type="VBoxContainer" parent="MatchUI"]
 anchors_preset = 8
