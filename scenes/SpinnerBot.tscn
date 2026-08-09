@@ -1,7 +1,8 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=17 format=3]
 
 [ext_resource type="Script" path="res://scripts/SpinnerBot.gd" id="1_spinner"]
 [ext_resource type="PackedScene" path="res://scenes/ArmorPanel.tscn" id="2_panel"]
+[ext_resource type="Script" path="res://scripts/WeaponAudio.gd" id="9_whine"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_hull"]
 size = Vector3(1.2, 0.4, 1.0)
@@ -24,6 +25,22 @@ size = Vector3(0.1, 0.09, 0.5)
 albedo_color = Color(0.75, 0.76, 0.8, 1)
 metallic = 0.95
 roughness = 0.18
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_blur"]
+top_radius = 0.25
+bottom_radius = 0.25
+height = 0.1
+radial_segments = 32
+rings = 0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_blur"]
+transparency = 1
+shading_mode = 0
+albedo_color = Color(0.85, 0.9, 1, 0)
+emission_enabled = true
+emission = Color(0.6, 0.75, 1, 1)
+emission_energy_multiplier = 0.0
+disable_receive_shadows = true
 
 [sub_resource type="PhysicsMaterial" id="PhysicsMaterial_blade"]
 friction = 0.5
@@ -88,6 +105,18 @@ surface_material_override/0 = SubResource("StandardMaterial3D_blade")
 
 [node name="Collision" type="CollisionShape3D" parent="Blade"]
 shape = SubResource("BoxShape3D_blade")
+
+[node name="Blur" type="MeshInstance3D" parent="Blade"]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 0, 0, 0)
+cast_shadow = 0
+mesh = SubResource("CylinderMesh_blur")
+surface_material_override/0 = SubResource("StandardMaterial3D_blur")
+
+[node name="Whine" type="AudioStreamPlayer3D" parent="."]
+script = ExtResource("9_whine")
+bot_path = NodePath("..")
+unit_size = 14.0
+max_distance = 40.0
 
 [node name="Joint" type="HingeJoint3D" parent="Blade"]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 0, 0, 0)

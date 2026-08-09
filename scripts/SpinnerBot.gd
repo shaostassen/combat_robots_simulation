@@ -30,6 +30,8 @@ var weapon_active: bool = false
 var _blade: RigidBody3D
 var _hinge: HingeJoint3D
 var _blade_inertia: float = 1.0
+var _blur: MeshInstance3D
+var _blur_material: StandardMaterial3D
 
 func _ready() -> void:
 	super()
@@ -41,6 +43,11 @@ func _ready() -> void:
 	# stored energy readout is only honest if this tracks the blade's real shape.
 	var box := ($Blade/Collision as CollisionShape3D).shape as BoxShape3D
 	_blade_inertia = _blade.mass * (box.size.y * box.size.y + box.size.z * box.size.z) / 12.0
+
+	_blur = get_node_or_null("Blade/Blur") as MeshInstance3D
+	if _blur != null:
+		_blur_material = (_blur.get_active_material(0) as StandardMaterial3D).duplicate()
+		_blur.material_override = _blur_material
 
 func _unhandled_key_input(event: InputEvent) -> void:
 	super(event)
@@ -72,6 +79,18 @@ func spin_weapon(active: bool, delta: float) -> void:
 
 	blade_rate = blade_speed_now()
 	blade_energy = 0.5 * _blade_inertia * blade_rate * blade_rate
+	_update_blur()
+
+## Fades the swept-arc disc in as the blade spins up, and counter-rotates it so
+## it reads as a stationary disc rather than a plate bolted to the blade.
+func _update_blur() -> void:
+	if _blur_material == null:
+		return
+	var fraction := clampf(absf(blade_rate) / maxf(blade_speed, 1.0), 0.0, 1.0)
+	_blur.visible = fraction > 0.12
+	_blur_material.albedo_color.a = 0.55 * fraction
+	_blur_material.emission_energy_multiplier = 1.6 * fraction
+	_blur.global_basis = global_basis
 
 ## Energy the blade holds at its commanded rate -- the yardstick for "fully
 ## spun", so callers can judge readiness as a fraction instead of in joules.
