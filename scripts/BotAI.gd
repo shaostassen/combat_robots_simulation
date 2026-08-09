@@ -34,6 +34,10 @@ enum State {
 ## re-engages at half rate arrives with a quarter of the punch -- backing off to
 ## re-spin is nearly always the better trade.
 @export var retreat_energy: float = 0.45
+@export_group("Arm weapons")
+## How close a flipper or hammer has to be before it commits its one stroke.
+## Too eager and it spends the match firing at empty floor while it reloads.
+@export var fire_range: float = 1.9
 
 var state: State = State.CHARGING
 ## Last command issued, exposed for the HUD and the bench.
@@ -42,6 +46,7 @@ var turn: float = 0.0
 
 var _bot: CombatBot
 var _spinner: SpinnerBot
+var _arm: ArmBot
 var _enemy: Node3D
 var _aim: Vector3
 var _since_decision: float = 0.0
@@ -49,6 +54,7 @@ var _since_decision: float = 0.0
 func _ready() -> void:
 	_bot = get_parent() as CombatBot
 	_spinner = _bot as SpinnerBot
+	_arm = _bot as ArmBot
 	_enemy = get_node_or_null(enemy_path) as Node3D
 	if _bot != null:
 		_aim = _bot.global_position
@@ -83,6 +89,13 @@ func _physics_process(delta: float) -> void:
 		throttle *= 0.25
 
 	_bot.drive(throttle, turn, delta)
+
+	# One stroke, then a long reload -- so only spend it with the enemy close and
+	# actually in front, never on the approach.
+	if _arm != null:
+		_arm.drive_arm(delta)
+		if _arm.arm_ready() and distance < fire_range and absf(bearing) < 22.0:
+			_arm.fire()
 
 ## Returns (throttle, bearing to hold in degrees) for this archetype.
 ##
