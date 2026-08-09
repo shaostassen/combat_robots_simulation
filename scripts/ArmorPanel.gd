@@ -50,6 +50,8 @@ signal broke(panel: ArmorPanel)
 ## A collision spans dozens of ticks; without a floor on the gap between bursts
 ## a single hit would spawn hundreds of them.
 const SPARK_INTERVAL_TICKS := 6
+## Enough vertices for dents to read without turning armour into a mesh budget.
+const DENT_SUBDIVISIONS := 12
 
 var damage: float = 0.0
 var broken: bool = false
@@ -57,8 +59,7 @@ var broken: bool = false
 var _spark_cooldown: int = 0
 
 var _joint: Generic6DOFJoint3D
-var _material: StandardMaterial3D
-var _base_color: Color
+var _material: ShaderMaterial
 
 func _ready() -> void:
 	_rebuild()
@@ -68,13 +69,12 @@ func _ready() -> void:
 	contact_monitor = true
 	max_contacts_reported = 8
 
-	# Each panel discolours independently, so it needs its own material instead
-	# of the shared one every instance would otherwise point at.
+	# Each panel dents independently, so it needs its own material instead of the
+	# shared one every instance would otherwise point at.
 	var mesh_node := $Mesh as MeshInstance3D
-	var source := mesh_node.get_active_material(0) as StandardMaterial3D
+	var source := mesh_node.get_active_material(0) as ShaderMaterial
 	if source != null:
 		_material = source.duplicate()
-		_base_color = _material.albedo_color
 		mesh_node.material_override = _material
 
 func _rebuild() -> void:
@@ -84,6 +84,12 @@ func _rebuild() -> void:
 	if mesh_node != null:
 		var box := BoxMesh.new()
 		box.size = size
+		# Subdivided so the dent shader has something to push around. A stock box
+		# is eight corners and nothing between them, and displacing that just
+		# drags the corners.
+		box.subdivide_width = DENT_SUBDIVISIONS
+		box.subdivide_height = DENT_SUBDIVISIONS
+		box.subdivide_depth = DENT_SUBDIVISIONS
 		mesh_node.mesh = box
 	var collision := get_node_or_null("Collision") as CollisionShape3D
 	if collision != null:
@@ -127,10 +133,9 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 	_refresh_tint()
 
 func _refresh_tint() -> void:
-	if _material == null:
-		return
 	var fraction := clampf(damage / maxf(integrity, 0.001), 0.0, 1.0)
-	_material.albedo_color = _base_color.lerp(Color(0.18, 0.13, 0.11), fraction)
+	if _material != null:
+		_material.set_shader_parameter("damage", fraction)
 	damaged.emit(fraction)
 
 func _shear(at: Vector3) -> void:

@@ -1,11 +1,16 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/ArmorPanel.gd" id="1_panel"]
+[ext_resource type="Shader" path="res://shaders/armor_panel.gdshader" id="2_dent"]
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_panel"]
-albedo_color = Color(0.68, 0.7, 0.74, 1)
-metallic = 0.85
-roughness = 0.32
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_panel"]
+shader = ExtResource("2_dent")
+shader_parameter/damage = 0.0
+shader_parameter/clean_color = Color(0.68, 0.7, 0.74, 1)
+shader_parameter/beaten_color = Color(0.19, 0.15, 0.13, 1)
+shader_parameter/dent_depth = 0.035
+shader_parameter/dent_scale = 7.0
+shader_parameter/metallic_amount = 0.85
 
 [sub_resource type="PhysicsMaterial" id="PhysicsMaterial_panel"]
 friction = 0.4
@@ -24,7 +29,7 @@ max_contacts_reported = 8
 script = ExtResource("1_panel")
 
 [node name="Mesh" type="MeshInstance3D" parent="."]
-material_override = SubResource("StandardMaterial3D_panel")
+material_override = SubResource("ShaderMaterial_panel")
 
 [node name="Collision" type="CollisionShape3D" parent="."]
 
