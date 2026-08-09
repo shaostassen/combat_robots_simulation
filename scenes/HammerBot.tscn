@@ -1,0 +1,282 @@
+[gd_scene load_steps=16 format=3]
+
+[ext_resource type="Script" path="res://scripts/ArmBot.gd" id="1_arm"]
+[ext_resource type="PackedScene" path="res://scenes/ArmorPanel.tscn" id="2_panel"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_hull"]
+size = Vector3(1.2, 0.4, 1.0)
+
+[sub_resource type="BoxMesh" id="BoxMesh_hull"]
+size = Vector3(1.2, 0.4, 1.0)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hull"]
+albedo_color = Color(0.62, 0.5, 0.1, 1)
+metallic = 0.4
+roughness = 0.5
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_head"]
+size = Vector3(0.26, 0.22, 0.22)
+
+[sub_resource type="BoxMesh" id="BoxMesh_head"]
+size = Vector3(0.26, 0.22, 0.22)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_arm"]
+size = Vector3(0.1, 0.1, 0.84)
+
+[sub_resource type="BoxMesh" id="BoxMesh_arm"]
+size = Vector3(0.1, 0.1, 0.84)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_arm"]
+albedo_color = Color(0.75, 0.76, 0.8, 1)
+metallic = 0.95
+roughness = 0.18
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_arm"]
+friction = 0.5
+bounce = 0.25
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_wheel"]
+radius = 0.28
+height = 0.22
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_wheel"]
+top_radius = 0.28
+bottom_radius = 0.28
+height = 0.22
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wheel"]
+albedo_color = Color(0.05, 0.05, 0.05, 1)
+roughness = 0.9
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_wheel"]
+friction = 1.6
+rough = true
+bounce = 0.0
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_chassis"]
+friction = 0.25
+bounce = 0.05
+
+[node name="HammerBot" type="RigidBody3D"]
+mass = 45.0
+physics_material_override = SubResource("PhysicsMaterial_chassis")
+center_of_mass_mode = 1
+center_of_mass = Vector3(0, -0.18, 0.18)
+continuous_cd = true
+contact_monitor = true
+max_contacts_reported = 16
+can_sleep = false
+linear_damp_mode = 1
+linear_damp = 0.0
+angular_damp_mode = 1
+angular_damp = 0.2
+script = ExtResource("1_arm")
+rest_angle = 115.0
+fired_angle = -28.0
+fire_torque = 1400.0
+reset_torque = 260.0
+stroke_time = 0.3
+reload_time = 2.0
+
+[node name="ChassisMesh" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_hull")
+surface_material_override/0 = SubResource("StandardMaterial3D_hull")
+
+[node name="ChassisCollision" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_hull")
+
+[node name="Arm" type="RigidBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.36, -0.55)
+mass = 11.0
+physics_material_override = SubResource("PhysicsMaterial_arm")
+continuous_cd = true
+can_sleep = false
+
+[node name="ArmMesh" type="MeshInstance3D" parent="Arm"]
+mesh = SubResource("BoxMesh_arm")
+surface_material_override/0 = SubResource("StandardMaterial3D_arm")
+
+[node name="Collision" type="CollisionShape3D" parent="Arm"]
+shape = SubResource("BoxShape3D_arm")
+
+[node name="HeadMesh" type="MeshInstance3D" parent="Arm"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.42)
+mesh = SubResource("BoxMesh_head")
+surface_material_override/0 = SubResource("StandardMaterial3D_arm")
+
+[node name="HeadCollision" type="CollisionShape3D" parent="Arm"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.42)
+shape = SubResource("BoxShape3D_head")
+
+[node name="Joint" type="HingeJoint3D" parent="Arm"]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 0, 0, 0.45)
+node_a = NodePath("../..")
+node_b = NodePath("..")
+angular_limit/enable = true
+angular_limit/upper = 2.0944
+angular_limit/lower = -0.5236
+motor/enable = true
+motor/target_velocity = 0.0
+motor/max_impulse = 0.0
+
+[node name="FrontLeftWheel" type="RigidBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.72, -0.05, -0.32)
+mass = 1.2
+physics_material_override = SubResource("PhysicsMaterial_wheel")
+can_sleep = false
+
+[node name="WheelMesh" type="MeshInstance3D" parent="FrontLeftWheel"]
+transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0)
+mesh = SubResource("CylinderMesh_wheel")
+surface_material_override/0 = SubResource("StandardMaterial3D_wheel")
+
+[node name="WheelCollision" type="CollisionShape3D" parent="FrontLeftWheel"]
+transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0)
+shape = SubResource("CylinderShape3D_wheel")
+
+[node name="Joint" type="Generic6DOFJoint3D" parent="FrontLeftWheel"]
+node_a = NodePath("../..")
+node_b = NodePath("..")
+linear_limit_x/enabled = true
+linear_limit_x/upper_distance = 0.0
+linear_limit_x/lower_distance = 0.0
+linear_limit_y/enabled = true
+linear_limit_y/upper_distance = 0.0
+linear_limit_y/lower_distance = 0.0
+linear_limit_z/enabled = true
+linear_limit_z/upper_distance = 0.0
+linear_limit_z/lower_distance = 0.0
+angular_limit_x/enabled = false
+angular_limit_y/enabled = true
+angular_limit_y/upper_angle = 0.0
+angular_limit_y/lower_angle = 0.0
+angular_limit_z/enabled = true
+angular_limit_z/upper_angle = 0.0
+angular_limit_z/lower_angle = 0.0
+angular_motor_x/enabled = true
+angular_motor_x/target_velocity = 0.0
+angular_motor_x/force_limit = 0.0
+
+[node name="FrontRightWheel" type="RigidBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.72, -0.05, -0.32)
+mass = 1.2
+physics_material_override = SubResource("PhysicsMaterial_wheel")
+can_sleep = false
+
+[node name="WheelMesh" type="MeshInstance3D" parent="FrontRightWheel"]
+transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0)
+mesh = SubResource("CylinderMesh_wheel")
+surface_material_override/0 = SubResource("StandardMaterial3D_wheel")
+
+[node name="WheelCollision" type="CollisionShape3D" parent="FrontRightWheel"]
+transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0)
+shape = SubResource("CylinderShape3D_wheel")
+
+[node name="Joint" type="Generic6DOFJoint3D" parent="FrontRightWheel"]
+node_a = NodePath("../..")
+node_b = NodePath("..")
+linear_limit_x/enabled = true
+linear_limit_x/upper_distance = 0.0
+linear_limit_x/lower_distance = 0.0
+linear_limit_y/enabled = true
+linear_limit_y/upper_distance = 0.0
+linear_limit_y/lower_distance = 0.0
+linear_limit_z/enabled = true
+linear_limit_z/upper_distance = 0.0
+linear_limit_z/lower_distance = 0.0
+angular_limit_x/enabled = false
+angular_limit_y/enabled = true
+angular_limit_y/upper_angle = 0.0
+angular_limit_y/lower_angle = 0.0
+angular_limit_z/enabled = true
+angular_limit_z/upper_angle = 0.0
+angular_limit_z/lower_angle = 0.0
+angular_motor_x/enabled = true
+angular_motor_x/target_velocity = 0.0
+angular_motor_x/force_limit = 0.0
+
+[node name="RearLeftWheel" type="RigidBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.72, -0.05, 0.32)
+mass = 1.2
+physics_material_override = SubResource("PhysicsMaterial_wheel")
+can_sleep = false
+
+[node name="WheelMesh" type="MeshInstance3D" parent="RearLeftWheel"]
+transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0)
+mesh = SubResource("CylinderMesh_wheel")
+surface_material_override/0 = SubResource("StandardMaterial3D_wheel")
+
+[node name="WheelCollision" type="CollisionShape3D" parent="RearLeftWheel"]
+transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0)
+shape = SubResource("CylinderShape3D_wheel")
+
+[node name="Joint" type="Generic6DOFJoint3D" parent="RearLeftWheel"]
+node_a = NodePath("../..")
+node_b = NodePath("..")
+linear_limit_x/enabled = true
+linear_limit_x/upper_distance = 0.0
+linear_limit_x/lower_distance = 0.0
+linear_limit_y/enabled = true
+linear_limit_y/upper_distance = 0.0
+linear_limit_y/lower_distance = 0.0
+linear_limit_z/enabled = true
+linear_limit_z/upper_distance = 0.0
+linear_limit_z/lower_distance = 0.0
+angular_limit_x/enabled = false
+angular_limit_y/enabled = true
+angular_limit_y/upper_angle = 0.0
+angular_limit_y/lower_angle = 0.0
+angular_limit_z/enabled = true
+angular_limit_z/upper_angle = 0.0
+angular_limit_z/lower_angle = 0.0
+angular_motor_x/enabled = true
+angular_motor_x/target_velocity = 0.0
+angular_motor_x/force_limit = 0.0
+
+[node name="RearRightWheel" type="RigidBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.72, -0.05, 0.32)
+mass = 1.2
+physics_material_override = SubResource("PhysicsMaterial_wheel")
+can_sleep = false
+
+[node name="WheelMesh" type="MeshInstance3D" parent="RearRightWheel"]
+transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0)
+mesh = SubResource("CylinderMesh_wheel")
+surface_material_override/0 = SubResource("StandardMaterial3D_wheel")
+
+[node name="WheelCollision" type="CollisionShape3D" parent="RearRightWheel"]
+transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0)
+shape = SubResource("CylinderShape3D_wheel")
+
+[node name="Joint" type="Generic6DOFJoint3D" parent="RearRightWheel"]
+node_a = NodePath("../..")
+node_b = NodePath("..")
+linear_limit_x/enabled = true
+linear_limit_x/upper_distance = 0.0
+linear_limit_x/lower_distance = 0.0
+linear_limit_y/enabled = true
+linear_limit_y/upper_distance = 0.0
+linear_limit_y/lower_distance = 0.0
+linear_limit_z/enabled = true
+linear_limit_z/upper_distance = 0.0
+linear_limit_z/lower_distance = 0.0
+angular_limit_x/enabled = false
+angular_limit_y/enabled = true
+angular_limit_y/upper_angle = 0.0
+angular_limit_y/lower_angle = 0.0
+angular_limit_z/enabled = true
+angular_limit_z/upper_angle = 0.0
+angular_limit_z/lower_angle = 0.0
+angular_motor_x/enabled = true
+angular_motor_x/target_velocity = 0.0
+angular_motor_x/force_limit = 0.0
+
+[node name="PanelTop" parent="." instance=ExtResource("2_panel")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.23, 0.075)
+mass = 2.0
+size = Vector3(1.2, 0.06, 0.85)
+
+[node name="PanelRear" parent="." instance=ExtResource("2_panel")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.53)
+mass = 2.0
+size = Vector3(1.2, 0.3, 0.06)
