@@ -1,4 +1,5 @@
 extends Camera3D
+class_name ChaseCamera
 ## Third-person chase camera: hovers behind and above the target, smoothly
 ## following its position and yaw (ignores roll/pitch so physics tumbling
 ## doesn't make the camera seasick).
@@ -14,7 +15,21 @@ var _target: Node3D
 
 func _ready() -> void:
 	if target_path != NodePath():
-		_target = get_node(target_path)
+		_target = get_node_or_null(target_path)
+
+## Repoints the camera at a different bot. A tournament frees and rebuilds its
+## fighters between bouts, so the target cannot be resolved once at _ready and
+## trusted for the rest of the session.
+func set_target(target: Node3D) -> void:
+	_target = target
+	if target != null:
+		# Jump rather than sweep across the arena from the last bout's loser.
+		var forward := -target.global_transform.basis.z
+		forward.y = 0.0
+		if forward.length() > 0.01:
+			forward = forward.normalized()
+			global_position = target.global_position - forward * distance \
+				+ Vector3.UP * height
 
 func _physics_process(delta: float) -> void:
 	if _target == null:
