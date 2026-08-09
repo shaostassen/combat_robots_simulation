@@ -35,12 +35,26 @@ var _bots: Array[CombatBot] = []
 var _stalled: Array[float] = []
 
 func _ready() -> void:
+	var found: Array[CombatBot] = []
 	for path in bot_paths:
 		var bot := get_node_or_null(path) as CombatBot
 		if bot != null:
-			_bots.append(bot)
-			_stalled.append(0.0)
+			found.append(bot)
+	if not found.is_empty():
+		begin(found)
+
+## Starts a fresh bout with these fighters, resetting the clock and the counts.
+## Lets a tournament reuse one match loop across bouts instead of reloading the
+## world between them.
+func begin(fighters: Array[CombatBot]) -> void:
+	_bots = fighters.duplicate()
+	_stalled.clear()
+	for _fighter in _bots:
+		_stalled.append(0.0)
+	winner = null
+	reason = ""
 	clock = countdown_seconds
+	phase = Phase.COUNTDOWN
 	_set_bots_live(false)
 	phase_changed.emit(phase)
 
