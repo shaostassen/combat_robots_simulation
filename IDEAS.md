@@ -1,4 +1,4 @@
-# Combat Robots Game — IDEAS.md
+# Blaze and Heat — IDEAS.md
 
 *Brainstorm output, 2026-07-16. Next step: build M0 from this file in a fresh session (Sonnet is fine — direction lives here).*
 
@@ -66,9 +66,47 @@ Utility/state-machine driver, per archetype, no ML, no pathfinding beyond "arena
 - **Incumbent:** Robot Rumble 2.0 owns "combat robots sim." Differentiate on destruction spectacle and physics honesty, not roster size.
 - **AI scope creep.** It was flagged as a real subproject; the mitigation is the milestone order above — AI lands at M3, *after* the sandbox and damage model exist, and stays utility-simple.
 
-## Open questions (answer during SPEC/M0)
+## Open questions — answered
 
-- Art style: stylized-PBR (recommended — hides solo-art limits, reads well in clips) vs realistic.
-- Arena hazards in v1 (kill saws, pit) or M5?
-- Panel damage: pure accumulated impulse, or a small HP abstraction on top for tunability?
-- Project/game name.
+- **Art style: stylized-PBR.** Confirmed by what shipped. Primitive forms, polished-metal
+  PBR, a world-space grid floor, glow and volumetric fog. The recommendation held: it hides
+  the solo-art limits and reads well in clips.
+- **Panel damage: accumulated impulse above a per-panel tolerance — but denominated in force
+  (N), not impulse.** This is the "small HP abstraction" in practice, except the units are
+  physical, so it never needs a lookup table. Measuring force rather than raw impulse was
+  forced by two findings: contact impulse arrives spread over many points and many ticks, so
+  a per-point threshold registered *zero* damage on eight consecutive full-speed rams; and an
+  impulse threshold silently means something different at 60 Hz than at 120 Hz. Thresholds
+  were then set from a measured distribution rather than by feel (shove peaks ~140 N, a
+  full-speed wedge ram ~700 N, so tolerance sits at 250 N).
+- **Arena hazards: the pit is in v1; kill saws are deferred.** The pit earns its place because
+  it costs almost nothing conceptually — a hole in the floor and a depth check — and it stays
+  honest to pillar 1: nothing tags it as a hazard, nothing scores it, the geometry simply has
+  a hole and gravity does the rest. Kill saws need slots cut through the floor *and* would
+  have to be balanced against the panel damage model, which is a tuning job rather than a
+  build job. They are the obvious first addition once the archetype balance settles.
+- **Project/game name: Blaze and Heat.**
+
+## Status
+
+M0–M5 are built. Four archetypes (wedge, spinner, flipper, hammer), the impulse damage model
+with shearing panels and persistent debris, AI drivers, a match loop with countdown and
+knockout, the full spectacle list, and a four-bot single-elimination ladder.
+
+Each system has a headless bench under `tests/` that drives the real scenes and prints the
+numbers that define its feel — run those before and after touching anything physical. Note
+that `godot --headless --import` does *not* compile GDScript; only a script run or a game
+boot does.
+
+Known soft spots, in priority order:
+
+1. **Fights stalemate.** Every ladder bout was decided on the time limit, not a knockout.
+   Bots lock up rather than finishing each other, largely because head-on the wedge's plow
+   slides under while the spinner's blade passes above. Armour placement and AI approach
+   angles are the levers.
+2. **The hammer under-delivers** — it swings and recoils convincingly but does no armour
+   damage. More torque does not help: it goes into the chassis as reaction and the bot
+   backflips. Needs more arm inertia relative to the chassis, or a longer stroke.
+3. **Armour costs a lot of agility** — the wedge's pivot roughly halved once panels went on,
+   because they sit far from the yaw axis. That trade-off is real and arguably good; the
+   current 2 kg panels are a compromise, not a settled answer.

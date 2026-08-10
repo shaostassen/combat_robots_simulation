@@ -10,7 +10,7 @@ config_version=5
 
 [application]
 
-config/name="Combat Robots"
+config/name="Blaze and Heat"
 run/main_scene="res://scenes/Match.tscn"
 config/features=PackedStringArray("4.4", "Forward Plus")
 
