@@ -25,6 +25,14 @@ enum Phase { COUNTDOWN, FIGHTING, DECIDED }
 @export var immobile_speed: float = 0.35
 ## How long it has to stay that way while trying to move.
 @export var count_out_seconds: float = 10.0
+@export_group("Pit")
+## A bot whose chassis falls below this is out, immediately.
+##
+## Like the knockout, this stays physics rather than logic: the arena floor is
+## at y = 0, so a body underneath it has gone somewhere it cannot drive back
+## from. Nothing tags the pit as a hazard and nothing scores it -- the geometry
+## has a hole in it, and gravity does the rest.
+@export var pit_depth: float = -0.8
 
 var phase: Phase = Phase.COUNTDOWN
 var clock: float = 0.0
@@ -69,6 +77,8 @@ func _physics_process(delta: float) -> void:
 				phase_changed.emit(phase)
 		Phase.FIGHTING:
 			clock -= delta
+			if _check_pit():
+				return
 			_check_knockouts(delta)
 			if phase == Phase.FIGHTING and clock <= 0.0:
 				_decide_on_damage()
@@ -83,6 +93,14 @@ func loser() -> CombatBot:
 func count_on(bot: CombatBot) -> float:
 	var index := _bots.find(bot)
 	return _stalled[index] if index >= 0 else 0.0
+
+## Returns true if the bout ended down the hole.
+func _check_pit() -> bool:
+	for bot in _bots:
+		if bot.global_position.y < pit_depth:
+			_finish(_other_than(bot), "the pit")
+			return true
+	return false
 
 func _check_knockouts(delta: float) -> void:
 	for i in _bots.size():
