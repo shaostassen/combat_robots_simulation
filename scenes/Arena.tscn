@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=27 format=3]
 
 [ext_resource type="Shader" path="res://shaders/arena_grid.gdshader" id="1_grid"]
 
@@ -11,11 +11,45 @@ bounce = 0.0
 friction = 0.35
 bounce = 0.15
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_floor"]
-size = Vector3(20, 1, 20)
+[sub_resource type="BoxShape3D" id="Shape_West"]
+size = Vector3(1.5, 1, 20)
 
-[sub_resource type="BoxMesh" id="BoxMesh_floor"]
-size = Vector3(20, 1, 20)
+[sub_resource type="BoxMesh" id="Mesh_West"]
+size = Vector3(1.5, 1, 20)
+
+[sub_resource type="BoxShape3D" id="Shape_East"]
+size = Vector3(15.5, 1, 20)
+
+[sub_resource type="BoxMesh" id="Mesh_East"]
+size = Vector3(15.5, 1, 20)
+
+[sub_resource type="BoxShape3D" id="Shape_Near"]
+size = Vector3(3, 1, 15.5)
+
+[sub_resource type="BoxMesh" id="Mesh_Near"]
+size = Vector3(3, 1, 15.5)
+
+[sub_resource type="BoxShape3D" id="Shape_Far"]
+size = Vector3(3, 1, 1.5)
+
+[sub_resource type="BoxMesh" id="Mesh_Far"]
+size = Vector3(3, 1, 1.5)
+
+[sub_resource type="BoxShape3D" id="Shape_PitFloor"]
+size = Vector3(3, 0.5, 3)
+
+[sub_resource type="BoxMesh" id="Mesh_PitFloor"]
+size = Vector3(3, 0.5, 3)
+
+[sub_resource type="BoxShape3D" id="Shape_PitNS"]
+size = Vector3(3, 3, 0.2)
+
+[sub_resource type="BoxShape3D" id="Shape_PitEW"]
+size = Vector3(0.2, 3, 3)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pit"]
+albedo_color = Color(0.05, 0.05, 0.06, 1)
+roughness = 0.9
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_floor"]
 shader = ExtResource("1_grid")
@@ -47,14 +81,69 @@ roughness = 0.6
 [node name="Floor" type="StaticBody3D" parent="."]
 physics_material_override = SubResource("PhysicsMaterial_floor")
 
-[node name="FloorMesh" type="MeshInstance3D" parent="Floor"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
-mesh = SubResource("BoxMesh_floor")
+[node name="FloorWest" type="MeshInstance3D" parent="Floor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.25, -0.5, 0)
+mesh = SubResource("Mesh_West")
 surface_material_override/0 = SubResource("ShaderMaterial_floor")
 
-[node name="FloorCollision" type="CollisionShape3D" parent="Floor"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
-shape = SubResource("BoxShape3D_floor")
+[node name="FloorWestCollision" type="CollisionShape3D" parent="Floor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.25, -0.5, 0)
+shape = SubResource("Shape_West")
+
+[node name="FloorEast" type="MeshInstance3D" parent="Floor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.25, -0.5, 0)
+mesh = SubResource("Mesh_East")
+surface_material_override/0 = SubResource("ShaderMaterial_floor")
+
+[node name="FloorEastCollision" type="CollisionShape3D" parent="Floor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.25, -0.5, 0)
+shape = SubResource("Shape_East")
+
+[node name="FloorNear" type="MeshInstance3D" parent="Floor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, -0.5, -2.25)
+mesh = SubResource("Mesh_Near")
+surface_material_override/0 = SubResource("ShaderMaterial_floor")
+
+[node name="FloorNearCollision" type="CollisionShape3D" parent="Floor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, -0.5, -2.25)
+shape = SubResource("Shape_Near")
+
+[node name="FloorFar" type="MeshInstance3D" parent="Floor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, -0.5, 9.25)
+mesh = SubResource("Mesh_Far")
+surface_material_override/0 = SubResource("ShaderMaterial_floor")
+
+[node name="FloorFarCollision" type="CollisionShape3D" parent="Floor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, -0.5, 9.25)
+shape = SubResource("Shape_Far")
+
+[node name="Pit" type="StaticBody3D" parent="."]
+physics_material_override = SubResource("PhysicsMaterial_floor")
+
+[node name="PitFloorMesh" type="MeshInstance3D" parent="Pit"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, -3.25, 7)
+mesh = SubResource("Mesh_PitFloor")
+surface_material_override/0 = SubResource("StandardMaterial3D_pit")
+
+[node name="PitFloor" type="CollisionShape3D" parent="Pit"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, -3.25, 7)
+shape = SubResource("Shape_PitFloor")
+
+[node name="PitNear" type="CollisionShape3D" parent="Pit"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, -1.5, 5.4)
+shape = SubResource("Shape_PitNS")
+
+[node name="PitFar" type="CollisionShape3D" parent="Pit"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, -1.5, 8.6)
+shape = SubResource("Shape_PitNS")
+
+[node name="PitWest" type="CollisionShape3D" parent="Pit"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.6, -1.5, 7)
+shape = SubResource("Shape_PitEW")
+
+[node name="PitEast" type="CollisionShape3D" parent="Pit"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.4, -1.5, 7)
+shape = SubResource("Shape_PitEW")
 
 [node name="Walls" type="StaticBody3D" parent="."]
 physics_material_override = SubResource("PhysicsMaterial_wall")
