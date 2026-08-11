@@ -133,7 +133,7 @@ func _attach_driver(bot: CombatBot, enemy: CombatBot) -> void:
 	var ai := BotAI.new()
 	ai.name = "AI"
 	bot.add_child(ai)
-	ai.enemy_path = ai.get_path_to(enemy)
+	ai.set_enemy(enemy)
 
 func _clear_fighters() -> void:
 	for bot: CombatBot in [_left, _right]:

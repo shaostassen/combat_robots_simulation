@@ -59,6 +59,15 @@ func _ready() -> void:
 	if _bot != null:
 		_aim = _bot.global_position
 
+## Points this driver at a target directly.
+##
+## Bots built at runtime cannot use `enemy_path`: the AI has to be inside the
+## tree before a relative path resolves, and by then _ready has run and cached a
+## null. Setting the path afterwards looks like it works and silently does not --
+## the driver simply never sees an opponent.
+func set_enemy(target: Node3D) -> void:
+	_enemy = target
+
 func _physics_process(delta: float) -> void:
 	if _bot == null or _enemy == null:
 		return
