@@ -91,7 +91,8 @@ Utility/state-machine driver, per archetype, no ML, no pathfinding beyond "arena
 
 M0–M5 are built. Four archetypes (wedge, spinner, flipper, hammer), the impulse damage model
 with shearing panels and persistent debris, AI drivers, a match loop with countdown and
-knockout, the full spectacle list, and a four-bot single-elimination ladder.
+knockout, the full spectacle list, a pit, and a four-bot single-elimination ladder that runs
+end to end and decides every bout on a knockout or the pit rather than the clock.
 
 Each system has a headless bench under `tests/` that drives the real scenes and prints the
 numbers that define its feel — run those before and after touching anything physical. Note
@@ -100,13 +101,25 @@ boot does.
 
 Known soft spots, in priority order:
 
-1. **Fights stalemate.** Every ladder bout was decided on the time limit, not a knockout.
-   Bots lock up rather than finishing each other, largely because head-on the wedge's plow
-   slides under while the spinner's blade passes above. Armour placement and AI approach
-   angles are the levers.
-2. **The hammer under-delivers** — it swings and recoils convincingly but does no armour
+1. **The hammer under-delivers** — it swings and recoils convincingly but does no armour
    damage. More torque does not help: it goes into the chassis as reaction and the bot
    backflips. Needs more arm inertia relative to the chassis, or a longer stroke.
-3. **Armour costs a lot of agility** — the wedge's pivot roughly halved once panels went on,
+2. **Armour costs a lot of agility** — the wedge's pivot roughly halved once panels went on,
    because they sit far from the yaw axis. That trade-off is real and arguably good; the
    current 2 kg panels are a compromise, not a settled answer.
+3. **Bench numbers vary run to run** — pivot rate has read anywhere from 96 to 213 deg/s on
+   identical code, depending on how the bot settled. Average before tuning against it.
+
+### A bug worth remembering
+
+Three separate times, something read state during node construction that was not set yet:
+the AI cached the spinner's full-energy yardstick before the blade's inertia existed; the
+match's opening bout was announced before anything could subscribe; and the tournament wired
+each driver's enemy *after* `add_child`, which had already run `_ready` and cached a null.
+
+That last one was the expensive one. Every tournament bout was two idle machines running out
+the clock, and it looked exactly like a balance problem — it was written up here as "fights
+stalemate, bots lock up rather than finishing each other" before the cause was found. In
+Godot, `add_child` runs `_ready` immediately; anything a node reads there must be set before
+it, or passed in afterwards through a setter. The ladder bench now asserts that bouts end
+decisively, so an idle AI cannot masquerade as a design problem again.
