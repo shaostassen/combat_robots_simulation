@@ -33,4 +33,4 @@ height = 4.0
 
 [node name="MatchLoop" type="Node" parent="."]
 script = ExtResource("3_match")
-time_limit = 25.0
+time_limit = 90.0
