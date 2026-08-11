@@ -25,6 +25,13 @@ enum Phase { COUNTDOWN, FIGHTING, DECIDED }
 @export var immobile_speed: float = 0.35
 ## How long it has to stay that way while trying to move.
 @export var count_out_seconds: float = 10.0
+## How fast the count unwinds once a bot moves again, as a multiple of real time.
+##
+## The count decays rather than resetting, because a referee does not start over
+## because a pinned machine twitched -- it stops counting once the bot shows it
+## can still drive. Hard-resetting made a bot that jittered over the threshold
+## once every few seconds effectively immune to being counted out.
+@export var count_recovery: float = 2.0
 @export_group("Pit")
 ## A bot whose chassis falls below this is out, immediately.
 ##
@@ -108,7 +115,7 @@ func _check_knockouts(delta: float) -> void:
 		if bot.is_commanded() and bot.linear_velocity.length() < immobile_speed:
 			_stalled[i] += delta
 		else:
-			_stalled[i] = 0.0
+			_stalled[i] = maxf(_stalled[i] - delta * count_recovery, 0.0)
 		if _stalled[i] >= count_out_seconds:
 			_finish(_other_than(bot), "knockout")
 			return
