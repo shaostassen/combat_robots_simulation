@@ -4,10 +4,7 @@
 [ext_resource type="Script" path="res://scripts/Tournament.gd" id="2_tournament"]
 [ext_resource type="Script" path="res://scripts/Match.gd" id="3_match"]
 [ext_resource type="Script" path="res://scripts/ChaseCamera.gd" id="4_chasecam"]
-
-[sub_resource type="Environment" id="Environment_1"]
-background_mode = 2
-ambient_light_energy = 0.5
+[ext_resource type="PackedScene" path="res://scenes/ArenaMood.tscn" id="5_mood"]
 
 [node name="Tournament" type="Node3D"]
 script = ExtResource("2_tournament")
@@ -15,12 +12,7 @@ match_scene_path = NodePath("MatchLoop")
 camera_path = NodePath("ChaseCamera")
 player_entrant = ""
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
-environment = SubResource("Environment_1")
-
-[node name="Sun" type="DirectionalLight3D" parent="."]
-transform = Transform3D(0.8236, -0.4131, 0.3893, 0, 0.6862, 0.7274, -0.5672, -0.5991, 0.5651, 0, 8, 0)
-shadow_enabled = true
+[node name="Mood" parent="." instance=ExtResource("5_mood")]
 
 [node name="Arena" parent="." instance=ExtResource("1_arena")]
 

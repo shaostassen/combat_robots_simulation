@@ -1,0 +1,96 @@
+[gd_scene load_steps=4 format=3]
+
+; The arena's lighting and atmosphere, in one place.
+;
+; Extracted from Match.tscn because Tournament.tscn had grown its own bare
+; WorldEnvironment -- no sky, no fog, no glow, no spotlights -- so the ladder,
+; which is the mode that plays itself and therefore the one most likely to be
+; watched, looked markedly worse than a single bout. One rig, both modes.
+;
+; Tuned dark on purpose. The bots carry saturated hull colours (amber wedge,
+; magenta spinner, green flipper, gold hammer) and polished-metal panels, and
+; both only read against a dark room with hot lights in it. The earlier settings
+; lifted the whole frame into a milky grey that desaturated every one of them.
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_1"]
+sky_top_color = Color(0.04, 0.05, 0.1, 1)
+sky_horizon_color = Color(0.16, 0.18, 0.24, 1)
+ground_bottom_color = Color(0.03, 0.03, 0.04, 1)
+ground_horizon_color = Color(0.1, 0.1, 0.12, 1)
+
+[sub_resource type="Sky" id="Sky_1"]
+sky_material = SubResource("ProceduralSkyMaterial_1")
+
+[sub_resource type="Environment" id="Environment_1"]
+background_mode = 2
+sky = SubResource("Sky_1")
+; Low, so the spotlights do the modelling instead of a flat fill.
+ambient_light_energy = 0.16
+tonemap_mode = 3
+tonemap_white = 6.0
+ssao_enabled = true
+; Raised with the ambient drop: contact shadows are what keep a bot sitting on
+; the floor rather than floating above it once the fill light is gone.
+ssao_intensity = 1.8
+sdfgi_enabled = true
+sdfgi_bounce_feedback = 0.5
+glow_enabled = true
+; Threshold below 1.0 so emissive trim and the spinner's blur disc bloom rather
+; than merely being bright.
+glow_intensity = 1.15
+glow_bloom = 0.2
+glow_hdr_threshold = 0.95
+fog_enabled = true
+; Was (0.36, 0.38, 0.46) at density 0.004 with volumetric at 0.018 -- across a
+; 22 m room that is enough scattering to grey out the far wall and everything
+; in front of it. Kept, but as a hint of haze in the light beams.
+fog_light_color = Color(0.14, 0.16, 0.22, 1)
+fog_density = 0.0022
+volumetric_fog_enabled = true
+volumetric_fog_density = 0.007
+volumetric_fog_emission = Color(0.05, 0.06, 0.1, 1)
+volumetric_fog_length = 48.0
+
+[node name="ArenaMood" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_1")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.8236, -0.4131, 0.3893, 0, 0.6862, 0.7274, -0.5672, -0.5991, 0.5651, 0, 8, 0)
+light_energy = 0.55
+shadow_enabled = true
+
+[node name="Rig" type="Node3D" parent="."]
+
+[node name="SpotNE" type="SpotLight3D" parent="Rig"]
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 5.5, 7.5, 5.5)
+light_color = Color(1, 0.94, 0.85, 1)
+light_energy = 7.5
+shadow_enabled = true
+spot_range = 22.0
+spot_angle = 55.0
+
+[node name="SpotNW" type="SpotLight3D" parent="Rig"]
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, -5.5, 7.5, 5.5)
+light_color = Color(1, 0.94, 0.85, 1)
+light_energy = 7.5
+shadow_enabled = true
+spot_range = 22.0
+spot_angle = 55.0
+
+[node name="SpotSE" type="SpotLight3D" parent="Rig"]
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 5.5, 7.5, -5.5)
+light_color = Color(0.86, 0.9, 1, 1)
+light_energy = 7.5
+shadow_enabled = true
+spot_range = 22.0
+spot_angle = 55.0
+
+[node name="SpotSW" type="SpotLight3D" parent="Rig"]
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, -5.5, 7.5, -5.5)
+light_color = Color(0.86, 0.9, 1, 1)
+light_energy = 7.5
+shadow_enabled = true
+spot_range = 22.0
+spot_angle = 55.0
