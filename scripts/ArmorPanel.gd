@@ -34,17 +34,29 @@ signal broke(panel: ArmorPanel)
 ## raw impulse threshold would silently mean something different at 60 Hz than
 ## at 120 Hz. Force is what the panel actually feels, at any tick rate.
 ##
-## Measured against the wedge: leaning on a panel at quarter throttle peaks
-## around 140 N, and a full-speed ram peaks around 700 N. 250 N sits between
-## them with margin on both sides.
+## The 140 N / 700 N figures this was originally calibrated from were read off
+## the ATTACKER's chassis, not off the panel, and the two differ by more than an
+## order of magnitude. Re-measured properly (`tests/ImpactBench.gd`, which reads
+## `peak_force` on the panel itself):
+##
+##   full-speed wedge ram    attacker 426-453 N, armour  0 N
+##   spinner at 4302 J,
+##   flank of a free 54 kg bot                  armour 69 N
+##   spinner at 4302 J, 150 kg dummy            over tolerance, shears in one
+##
+## So 250 N is a threshold nothing in an actual bout reaches, and this model has
+## effectively never fired outside the dummy. Left at 250 for now rather than
+## quietly rebalanced: what a strike SHOULD cost is a feel decision, and the
+## numbers above are the first honest basis for making it.
 @export var tolerance: float = 250.0
 ## Banked over-tolerance impulse (N*s) the weld survives before it lets go.
 ##
-## A full-speed wedge ram banks roughly 4.5 N*s, so 14 means three or four solid
-## hits -- and that is deliberate. A plow is a ramp: it turns an impact into lift
-## and shove rather than a square blow, so it should struggle to shear armour.
-## The headroom above it belongs to M2's spinner, which is meant to do this in
-## one strike.
+## The "roughly 4.5 N*s per ram, so three or four solid hits" this once claimed
+## was never measured on a panel: a wedge ram banks nothing at all, because the
+## plow passes UNDER the armour and drives into the core. The intent in the same
+## breath was right, and is what actually happens -- a plow is a ramp, it turns
+## an impact into lift and shove rather than a square blow, so it should struggle
+## to shear armour. It does not struggle; it never touches it.
 @export var integrity: float = 14.0
 
 ## A collision spans dozens of ticks; without a floor on the gap between bursts
@@ -55,6 +67,13 @@ const DENT_SUBDIVISIONS := 12
 
 var damage: float = 0.0
 var broken: bool = false
+## Hardest contact force this panel has felt, in newtons.
+##
+## Recorded before the tolerance test, not after, which is the entire point: a
+## panel that banks no damage looks identical to one nothing ever touched, and
+## the two need very different fixes. This says whether a weapon missed, grazed
+## at 90 N, or landed at 240 N and fell just short of the 250 N it needed.
+var peak_force: float = 0.0
 
 var _spark_cooldown: int = 0
 
@@ -116,6 +135,7 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 			normal = state.get_contact_local_normal(i)
 
 	var force := impulse / state.step
+	peak_force = maxf(peak_force, force)
 	_spark_cooldown = maxi(_spark_cooldown - 1, 0)
 	if force <= tolerance:
 		return

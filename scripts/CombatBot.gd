@@ -55,6 +55,10 @@ var slip_right: float = 0.0
 var torque_left: float = 0.0
 var torque_right: float = 0.0
 var peak_force: float = 0.0
+## Where on the chassis the hardest contact of the frame landed, in the bot's
+## own space. Armour is only useful where the hits actually are, and that is a
+## measurement rather than an assumption.
+var peak_contact: Vector3 = Vector3.ZERO
 
 var _left_wheels: Array[RigidBody3D] = []
 var _right_wheels: Array[RigidBody3D] = []
@@ -177,9 +181,18 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 	if state.step <= 0.0:
 		return
 	var impulse := 0.0
+	var worst := 0.0
+	var at := Vector3.ZERO
 	for i in state.get_contact_count():
-		impulse += state.get_contact_impulse(i).length()
-	_frame_force = maxf(_frame_force, impulse / state.step)
+		var magnitude := state.get_contact_impulse(i).length()
+		impulse += magnitude
+		if magnitude > worst:
+			worst = magnitude
+			at = state.get_contact_local_position(i)
+	var force := impulse / state.step
+	if force > _frame_force:
+		_frame_force = force
+		peak_contact = global_transform.affine_inverse() * at
 
 func reset_to_spawn() -> void:
 	reset_to(_spawn_transform)

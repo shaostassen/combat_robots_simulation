@@ -254,18 +254,28 @@ func _bench_damage() -> void:
 		_bot.reset_to(Transform3D(Basis(), approach + Vector3(0, 0, 6.0)))
 		_throttle = 0.0
 		await _run(30)
-		var impact := 0.0
+		var shove := 0.0
+		for panel in panels:
+			panel.peak_force = 0.0
 		for _i in 240:
 			_bot.drive(1.0, 0.0, TICK)
 			await process_frame
-			impact = maxf(impact, _bot.peak_force)
+			shove = maxf(shove, _bot.peak_force)
 			for panel in panels:
 				if panel.broken and broken == null:
 					broken = panel
 			if broken != null:
 				break
-		print("  ram %d: hit %.0f N -> banked +%.0f N·s, total %.0f%s"
-			% [hits, impact, _total(panels) - before, _total(panels),
+		# Two different bodies, and confusing them is what made this model look
+		# broken. The ram figure is what the ATTACKER's chassis felt; the panel
+		# figure is what the DEFENDER's armour felt, and only the second one is
+		# ever compared against tolerance. They differ by a factor of several,
+		# because a free-standing target is mostly shoved rather than dented.
+		var felt := 0.0
+		for panel in panels:
+			felt = maxf(felt, panel.peak_force)
+		print("  ram %d: attacker felt %.0f N, armour felt %.0f N -> banked +%.0f N·s, total %.0f%s"
+			% [hits, shove, felt, _total(panels) - before, _total(panels),
 				"   %s SHEARED" % broken.name if broken != null else ""])
 	print("")
 

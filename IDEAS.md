@@ -120,6 +120,44 @@ Also fixed: the kill cam orbited through the wall whenever the loser was pinned 
 which is most of the time, so the finishing blow played as several seconds of flat red. The
 orbit is now clamped to the wall inner faces and lifts by whatever reach it gives up.
 
+### The damage model has never fired in a real bout
+
+Found 2026-08-21 while chasing why a full-speed ram banks nothing. Three separate
+things, each hiding the next.
+
+**The calibration numbers were read off the wrong body.** `tolerance` was set from
+"a shove peaks ~140 N, a full-speed ram ~700 N" -- but those were the *attacker's*
+chassis force, not the force on the *defender's* panel, and the tolerance is only ever
+compared against the second. `DriveBench` printed the same mismatch, attacker force
+next to defender damage, which made the model look broken rather than mis-aimed. It now
+prints both, labelled.
+
+**The plow never touches armour at all.** Re-measured on the panel itself: a full-speed
+wedge ram is 426-453 N at the attacker and **0 N** at the armour. Not "below tolerance"
+-- zero. The plow passes under the panels and drives into the core. The old comment
+claiming "roughly 4.5 N·s per ram, three or four solid hits" was never measured; the
+intent in the same breath ("a plow is a ramp... it should struggle to shear armour") was
+right, and understated -- it never touches it.
+
+**Every archetype is armoured only where it does not get hit.** All four carry exactly
+`PanelTop` and `PanelRear`. Nothing on the front, nothing on the flanks. The AI drives
+straight at its enemy, so every engagement lands on the plow, the blade or the bare
+chassis. `PanelDummy` is the only object in the project with front and side panels --
+which is why it is the only thing that has ever taken damage, and why the model looked
+healthy in `SpinnerBench` while doing nothing in `MatchBench`.
+
+The dummy also weighs 150 kg and does not drive away. A 54 kg machine that is free to be
+thrown mostly *is* thrown -- the blade's 4302 J goes into launching it 791 mm up and
+3.95 m across rather than into denting it. That is honest physics and arguably the right
+outcome; it just means panel-shearing needs a pinned opponent, or a lower bar.
+
+Tried and reverted: side skirts outboard of the wheels on all four archetypes. They work
+-- flank hits went from 0 N to 69 N, and they protect the wheels, which are the real
+vulnerability. But they cut the spinner's signature launch from 791 mm to 265 mm and made
+the hammer's backflip worse (204 mm of self-lift to 337 mm). Trading the best moment in
+the game for a damage model that still would not fire is a bad deal. The measurements are
+in `tests/ImpactBench.gd`; the design call is open.
+
 Known soft spots, in priority order:
 
 1. **The hammer under-delivers** — it swings and recoils convincingly but does no armour
