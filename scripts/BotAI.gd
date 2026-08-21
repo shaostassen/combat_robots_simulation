@@ -34,6 +34,24 @@ enum State {
 ## re-engages at half rate arrives with a quarter of the punch -- backing off to
 ## re-spin is nearly always the better trade.
 @export var retreat_energy: float = 0.45
+@export_group("Working the enemy into a wall")
+## How far past the enemy to aim, toward whichever wall is nearest to them.
+##
+## Driving at an enemy's centre shoves it into open floor, where a 54 kg machine
+## absorbs the whole hit by simply moving -- a full-RPM blade lands 69 N on its
+## armour, against a 250 N tolerance, and nothing breaks. The same strike on a
+## machine with its back to a wall lands 1779 N and shears a panel off in one.
+## Aiming through the enemy at the wall behind it is that difference, and it is
+## the sport's actual tactic rather than a rule bolted on: take the escape away
+## first, then hit it.
+@export var wall_push: float = 4.0
+## Only bias the aim inside this range. Chasing a point past a distant enemy
+## reads as driving at the wall, and a bot grinding a wall is one the referee is
+## counting.
+@export var wall_push_range: float = 7.0
+## Arena.tscn's wall inner faces, as in KillCam.
+@export var arena_half_extent: Vector2 = Vector2(10.0, 10.0)
+
 @export_group("Arm weapons")
 ## How close a flipper or hammer has to be before it commits its one stroke.
 ## Too eager and it spends the match firing at empty floor while it reloads.
@@ -76,6 +94,11 @@ func _physics_process(delta: float) -> void:
 	if _since_decision >= reaction_time:
 		_since_decision = 0.0
 		_aim = _enemy.global_position
+		# Aim through the enemy rather than at it, once close enough that the
+		# offset means a shove rather than a detour.
+		var here := _bot.global_position
+		if here.distance_to(_aim) < wall_push_range:
+			_aim += _wall_side(_aim) * wall_push
 
 	var to_enemy := _aim - _bot.global_position
 	to_enemy.y = 0.0
@@ -105,6 +128,23 @@ func _physics_process(delta: float) -> void:
 		_arm.drive_arm(delta)
 		if _arm.arm_ready() and distance < fire_range and absf(bearing) < 22.0:
 			_arm.fire()
+
+## Unit direction from a point toward the nearest arena wall, in the floor plane.
+## Which wall does not matter to the physics -- only that the enemy runs out of
+## room in that direction.
+func _wall_side(at: Vector3) -> Vector3:
+	var east := arena_half_extent.x - at.x
+	var west := at.x + arena_half_extent.x
+	var north := arena_half_extent.y - at.z
+	var south := at.z + arena_half_extent.y
+	var nearest := minf(minf(east, west), minf(north, south))
+	if nearest == east:
+		return Vector3.RIGHT
+	if nearest == west:
+		return Vector3.LEFT
+	if nearest == north:
+		return Vector3.BACK
+	return Vector3.FORWARD
 
 ## Returns (throttle, bearing to hold in degrees) for this archetype.
 ##

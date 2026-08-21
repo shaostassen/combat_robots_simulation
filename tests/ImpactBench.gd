@@ -36,7 +36,33 @@ func _initialize() -> void:
 	for kind: String in ["WedgeBot", "SpinnerBot"]:
 		await _load(kind)
 		await _bench_flank(kind)
+
+	# The dummy shears because it weighs 150 kg and does not go anywhere. A real
+	# bot is 54 kg and free, so the blade's energy launches it instead of denting
+	# it -- unless it has nowhere to go. This is that case: the victim's back is
+	# against the arena wall, presenting the one panel it does carry.
+	print("=== AGAINST A BOT WITH NOWHERE TO GO ===\n")
+	for kind: String in ["SpinnerBot", "WedgeBot"]:
+		await _load(kind)
+		await _bench_pinned(kind)
 	quit()
+
+## Victim backed against the far wall, rear panel toward the charge.
+func _bench_pinned(kind: String) -> void:
+	print("[%s vs pinned bot]" % kind)
+	# Arena wall inner faces sit at +/-10; put the victim's tail almost on it.
+	_victim.reset_to(Transform3D(Basis(), Vector3(0.0, 0.35, -9.3)))
+	_attacker.reset_to(Transform3D(Basis(), Vector3(0.0, 0.35, -3.0)))
+	if _attacker is SpinnerBot:
+		await _run(600, 0.0, false)
+		var spinner := _attacker as SpinnerBot
+		print("  blade at contact   %.0f J" % spinner.blade_energy)
+	else:
+		await _run(60, 0.0, false)
+	_reset_panels()
+	await _run(360, 1.0, false)
+	_report(kind)
+	print("")
 
 ## Attacker charges a victim presented side-on.
 func _bench_flank(kind: String) -> void:

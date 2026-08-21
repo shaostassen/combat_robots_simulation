@@ -74,6 +74,12 @@ func _initialize() -> void:
 	print("  damage taken       wedge %.0f N·s, spinner %.0f N·s"
 		% [_damage(wedge), _damage(spinner)])
 	print("  panels shorn       wedge %d, spinner %d" % [_shorn(wedge), _shorn(spinner)])
+	# Banked damage alone cannot tell a near miss from a total miss. Peak force
+	# can: 250 N is the bar, a shove on a cornered bot is 5 N and a full-RPM
+	# strike on one is 1779 N, so this says how close the fight got to landing a
+	# real blow at all.
+	print("  hardest on armour  wedge %.0f N, spinner %.0f N (tolerance %.0f N)"
+		% [_peak(wedge), _peak(spinner), _tolerance(wedge)])
 	print("")
 	# The kill cam drags Engine.time_scale down globally. If it ever fails to put
 	# it back the game is permanently in slow motion, and nothing else in the
@@ -112,3 +118,17 @@ func _shorn(bot: CombatBot) -> int:
 		if child is ArmorPanel and (child as ArmorPanel).broken:
 			count += 1
 	return count
+
+## Hardest contact force any one of a bot's panels felt during the bout.
+func _peak(bot: CombatBot) -> float:
+	var hardest := 0.0
+	for child in bot.get_children():
+		if child is ArmorPanel:
+			hardest = maxf(hardest, (child as ArmorPanel).peak_force)
+	return hardest
+
+func _tolerance(bot: CombatBot) -> float:
+	for child in bot.get_children():
+		if child is ArmorPanel:
+			return (child as ArmorPanel).tolerance
+	return 0.0

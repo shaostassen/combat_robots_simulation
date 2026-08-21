@@ -39,15 +39,18 @@ signal broke(panel: ArmorPanel)
 ## order of magnitude. Re-measured properly (`tests/ImpactBench.gd`, which reads
 ## `peak_force` on the panel itself):
 ##
-##   full-speed wedge ram    attacker 426-453 N, armour  0 N
-##   spinner at 4302 J,
-##   flank of a free 54 kg bot                  armour 69 N
-##   spinner at 4302 J, 150 kg dummy            over tolerance, shears in one
+##   full-speed wedge ram, free bot     attacker 426-453 N, armour    0 N
+##   spinner at 4302 J, free bot                             armour   69 N
+##   wedge shove, bot pinned on a wall                       armour    5 N
+##   spinner at 4302 J, bot pinned on a wall                 armour 1779 N
 ##
-## So 250 N is a threshold nothing in an actual bout reaches, and this model has
-## effectively never fired outside the dummy. Left at 250 for now rather than
-## quietly rebalanced: what a strike SHOULD cost is a feel decision, and the
-## numbers above are the first honest basis for making it.
+## 250 N is right where it belongs: a shove on a cornered machine is 5 N and a
+## full-RPM strike on the same machine is 1779 N, so the threshold separates them
+## by a wide margin in both directions. What decides damage is not the weapon
+## alone but whether the target can retreat -- a free 54 kg bot absorbs the blade
+## by being thrown 791 mm into the air, and a cornered one has to absorb it
+## through its armour. That is the sport, and it falls out of the physics rather
+## than being written down anywhere.
 @export var tolerance: float = 250.0
 ## Banked over-tolerance impulse (N*s) the weld survives before it lets go.
 ##

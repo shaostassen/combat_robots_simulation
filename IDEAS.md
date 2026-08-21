@@ -120,7 +120,7 @@ Also fixed: the kill cam orbited through the wall whenever the loser was pinned 
 which is most of the time, so the finishing blow played as several seconds of flat red. The
 orbit is now clamped to the wall inner faces and lifts by whatever reach it gives up.
 
-### The damage model has never fired in a real bout
+### Why the damage model never fires: nobody ever gets pinned
 
 Found 2026-08-21 while chasing why a full-speed ram banks nothing. Three separate
 things, each hiding the next.
@@ -146,10 +146,40 @@ chassis. `PanelDummy` is the only object in the project with front and side pane
 which is why it is the only thing that has ever taken damage, and why the model looked
 healthy in `SpinnerBench` while doing nothing in `MatchBench`.
 
-The dummy also weighs 150 kg and does not drive away. A 54 kg machine that is free to be
-thrown mostly *is* thrown -- the blade's 4302 J goes into launching it 791 mm up and
-3.95 m across rather than into denting it. That is honest physics and arguably the right
-outcome; it just means panel-shearing needs a pinned opponent, or a lower bar.
+**And that is the whole answer.** The dummy weighs 150 kg and does not drive away. A 54 kg
+machine that is free to be thrown mostly *is* thrown -- the blade's 4302 J goes into
+launching it 791 mm up and 3.95 m across rather than into denting it. Back the same bot
+against a wall and the blade has to spend its energy through the armour instead:
+
+    spinner at 4302 J, free bot                 69 N on the panel, nothing
+    spinner at 4302 J, bot pinned on a wall   1779 N on the panel, SHEARS in one
+    wedge shove, bot pinned on a wall             5 N on the panel, nothing
+
+So the model is not broken and 250 N is not mis-set -- it separates a 5 N shove from a
+1779 N strike with margin on both sides, exactly as intended. What was missing is the
+tactic. Damage requires taking the opponent's escape away first, which is the sport, and
+no driver in the game ever did it: `BotAI._plan()` returned "drive straight at the enemy"
+and the enemy simply flew away. This file specified the missing half from the start --
+"Wedge AI: drive at the enemy's wheels, get under, push toward walls/hazards" -- and only
+the first half was ever built.
+
+**Built now.** The AI aims *through* the enemy at whichever wall is nearest to it, inside
+a range where that reads as a shove rather than a detour. One number, `wall_push`, and it
+is a straight lever on how violent a bout is:
+
+    wall_push   bout    blade bites   hardest on armour (bar is 250 N)
+    0.0        34.9 s        1        wedge 107 N   spinner 185 N
+    2.5        27.7 s        2        wedge 138 N   spinner 165 N
+    4.0        23.4 s        4        wedge 435 N   spinner 277 N
+
+At 4.0 both machines are driven past tolerance in an ordinary bout and the wedge banks
+real damage for the first time -- 2 N·s, against the 14 N·s a panel survives, so plates
+now dent and discolour in play even though shearing still wants a cleaner hit. Bouts got
+a third shorter, because a fight where someone is being worked into a wall ends sooner
+than one where both machines skate around open floor.
+
+Ladder balance moved with it: the hammer, which used to flip itself out of its semi-final,
+is now champion.
 
 Tried and reverted: side skirts outboard of the wheels on all four archetypes. They work
 -- flank hits went from 0 N to 69 N, and they protect the wheels, which are the real
