@@ -99,6 +99,27 @@ numbers that define its feel — run those before and after touching anything ph
 that `godot --headless --import` does *not* compile GDScript; only a script run or a game
 boot does.
 
+A readability pass followed (2026-08-20). Three things the footage made obvious that
+playing it had not:
+
+- **The arena was lit into a milky grey.** Fog and volumetric density were high enough to
+  wash the far wall and everything in front of it, which desaturated the one thing carrying
+  each bot's identity -- its hull colour. Ambient and fog came down, glow threshold went
+  below 1.0, and the light rig moved into `scenes/ArenaMood.tscn`.
+- **The ladder looked worse than a single bout.** `Tournament.tscn` had grown its own bare
+  `WorldEnvironment` -- no sky, fog, glow or spotlights -- so the mode that plays itself,
+  and is therefore the one most likely to be watched, was the ugliest thing in the project.
+  Both scenes now instance the same rig.
+- **The pit was invisible.** A near-black 3 m hole in a dark floor cannot be seen until
+  something falls in it, which makes the only instant-loss feature unreadable. There is now
+  hazard paint around the lip: four meshes on the floor, no collider, nothing tagging it as
+  a hazard. Pillar 1 is intact -- the geometry has a hole and gravity does the rest; pillar 2
+  finally holds too.
+
+Also fixed: the kill cam orbited through the wall whenever the loser was pinned against one,
+which is most of the time, so the finishing blow played as several seconds of flat red. The
+orbit is now clamped to the wall inner faces and lifts by whatever reach it gives up.
+
 Known soft spots, in priority order:
 
 1. **The hammer under-delivers** — it swings and recoils convincingly but does no armour
