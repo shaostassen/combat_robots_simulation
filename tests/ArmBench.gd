@@ -12,6 +12,7 @@ const TICK := 1.0 / 120.0
 var _scene: Node
 var _bot: ArmBot
 var _target: CombatBot
+var _peak_pitch: float = 0.0
 
 func _initialize() -> void:
 	for kind: String in ["FlipperBot", "HammerBot"]:
@@ -57,6 +58,7 @@ func _bench(kind: String) -> void:
 	var start_angle := _bot.arm_angle()
 	var self_lift := 0.0
 	var base_y := _bot.global_position.y
+	_peak_pitch = 0.0
 	_bot.fire()
 	# Peak travel, not the angle a second later -- by then the arm has fired,
 	# reset and is sitting back at rest, which reads as no stroke at all.
@@ -68,9 +70,18 @@ func _bench(kind: String) -> void:
 		if absf(_bot.arm_angle() - start_angle) > absf(extreme - start_angle):
 			extreme = _bot.arm_angle()
 		self_lift = maxf(self_lift, _bot.global_position.y - base_y)
+		# Rearing up is the hammer's whole look; going over is losing the bout.
+		# Peak pitch says which one happened, and the settle says whether it came
+		# back down on its wheels.
+		_peak_pitch = maxf(_peak_pitch, rad_to_deg(_bot.global_basis.get_euler().x))
 	print("  dry stroke         %.0f -> %.0f deg (target %.0f)"
 		% [start_angle, extreme, _bot.fired_angle])
 	print("  own nose lifted    %.0f mm (its own recoil)" % (self_lift * 1000.0))
+	await _settle(180)
+	var settled := rad_to_deg(_bot.global_basis.get_euler().x)
+	print("  reared to          %.0f deg, settled at %.0f deg%s"
+		% [_peak_pitch, settled,
+			"   WENT OVER" if absf(settled) > 60.0 else ""])
 
 	# 2. Fire with the victim sitting on the arm -- the shot the archetype is for.
 	await _reload()

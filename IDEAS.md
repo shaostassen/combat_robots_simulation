@@ -160,9 +160,17 @@ in `tests/ImpactBench.gd`; the design call is open.
 
 Known soft spots, in priority order:
 
-1. **The hammer under-delivers** — it swings and recoils convincingly but does no armour
-   damage. More torque does not help: it goes into the chassis as reaction and the bot
-   backflips. Needs more arm inertia relative to the chassis, or a longer stroke.
+1. **The hammer no longer beats itself, but still does no armour damage.** The backflip
+   was measured rather than guessed at (`ArmBench` now reports peak pitch and where the
+   bot settles): a dry stroke reared it to **85 degrees and left it lying at 81** — a bout
+   lost to its own weapon every time it fired, which is why it looked like a damage
+   problem. Shao's call was to keep the rear-up rather than design it out, so it is now
+   bounded by geometry instead of by a rule: a wheelie bar behind the rear axle that meets
+   the floor part-way through the stroke. Nothing checks an angle and nothing cancels a
+   torque; there is simply something back there to land on. It now rears to **29 degrees
+   and settles flat**, and in the ladder it beats the flipper and reaches the final
+   instead of going out in its semi. Still open: it delivers nothing to armour — but that
+   is the placement problem above, not the hammer's.
 2. **Armour costs a lot of agility** — the wedge's pivot roughly halved once panels went on,
    because they sit far from the yaw axis. That trade-off is real and arguably good; the
    current 2 kg panels are a compromise, not a settled answer.

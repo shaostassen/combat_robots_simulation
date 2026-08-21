@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3]
+[gd_scene load_steps=18 format=3]
 
 [ext_resource type="Script" path="res://scripts/ArmBot.gd" id="1_arm"]
 [ext_resource type="PackedScene" path="res://scenes/ArmorPanel.tscn" id="2_panel"]
@@ -44,6 +44,12 @@ top_radius = 0.28
 bottom_radius = 0.28
 height = 0.22
 
+[sub_resource type="BoxShape3D" id="BoxShape3D_skid"]
+size = Vector3(0.5, 0.08, 0.34)
+
+[sub_resource type="BoxMesh" id="BoxMesh_skid"]
+size = Vector3(0.5, 0.08, 0.34)
+
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wheel"]
 albedo_color = Color(0.05, 0.05, 0.05, 1)
 roughness = 0.9
@@ -84,6 +90,23 @@ surface_material_override/0 = SubResource("StandardMaterial3D_hull")
 
 [node name="ChassisCollision" type="CollisionShape3D" parent="."]
 shape = SubResource("BoxShape3D_hull")
+
+; Wheelie bar. The hammer's reaction throws its nose up -- that is the archetype
+; and it stays -- but unbounded it went to 85 degrees and stayed on its back at
+; 81, which is a bout lost to its own weapon every time it fired.
+;
+; This bounds the rear-up with geometry rather than with a rule: a bar behind the
+; rear axle that meets the floor part-way through the rotation and carries the
+; bot's weight for the rest of the stroke. Nothing checks an angle, nothing
+; cancels a torque; there is simply something back there to land on.
+[node name="SkidCollision" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.06, 0.72)
+shape = SubResource("BoxShape3D_skid")
+
+[node name="SkidMesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.06, 0.72)
+mesh = SubResource("BoxMesh_skid")
+surface_material_override/0 = SubResource("StandardMaterial3D_wheel")
 
 [node name="Arm" type="RigidBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.36, -0.55)
