@@ -1,4 +1,4 @@
-[gd_scene load_steps=27 format=3]
+[gd_scene load_steps=30 format=3]
 
 [ext_resource type="Shader" path="res://shaders/arena_grid.gdshader" id="1_grid"]
 
@@ -46,6 +46,19 @@ size = Vector3(3, 3, 0.2)
 
 [sub_resource type="BoxShape3D" id="Shape_PitEW"]
 size = Vector3(0.2, 3, 3)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pitrim"]
+albedo_color = Color(0.9, 0.36, 0.05, 1)
+emission_enabled = true
+emission = Color(1, 0.42, 0.07, 1)
+emission_energy_multiplier = 2.4
+roughness = 0.6
+
+[sub_resource type="BoxMesh" id="Mesh_RimX"]
+size = Vector3(3.36, 0.02, 0.18)
+
+[sub_resource type="BoxMesh" id="Mesh_RimZ"]
+size = Vector3(0.18, 0.02, 3.36)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pit"]
 albedo_color = Color(0.05, 0.05, 0.06, 1)
@@ -144,6 +157,39 @@ shape = SubResource("Shape_PitEW")
 [node name="PitEast" type="CollisionShape3D" parent="Pit"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.4, -1.5, 7)
 shape = SubResource("Shape_PitEW")
+
+; Hazard paint around the lip, so the hole reads as a hole.
+;
+; Unlit and near-black at the bottom, a 3 m square pit on a dark floor is
+; invisible until something falls into it -- which makes the one instant-loss
+; feature in the game unreadable, and unfair to a driver who cannot see it.
+;
+; This is paint and nothing else: four thin meshes lying on the floor, no
+; collider, no script, nothing that tags the pit as a hazard. The geometry still
+; has a hole in it and gravity still does the rest (pillar 1); the driver can
+; now see where it is (pillar 2). Real arenas paint their hazards for exactly
+; this reason.
+[node name="PitRim" type="Node3D" parent="."]
+
+[node name="RimNear" type="MeshInstance3D" parent="PitRim"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, 0.012, 5.41)
+mesh = SubResource("Mesh_RimX")
+surface_material_override/0 = SubResource("StandardMaterial3D_pitrim")
+
+[node name="RimFar" type="MeshInstance3D" parent="PitRim"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, 0.012, 8.59)
+mesh = SubResource("Mesh_RimX")
+surface_material_override/0 = SubResource("StandardMaterial3D_pitrim")
+
+[node name="RimWest" type="MeshInstance3D" parent="PitRim"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.59, 0.012, 7)
+mesh = SubResource("Mesh_RimZ")
+surface_material_override/0 = SubResource("StandardMaterial3D_pitrim")
+
+[node name="RimEast" type="MeshInstance3D" parent="PitRim"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.41, 0.012, 7)
+mesh = SubResource("Mesh_RimZ")
+surface_material_override/0 = SubResource("StandardMaterial3D_pitrim")
 
 [node name="Walls" type="StaticBody3D" parent="."]
 physics_material_override = SubResource("PhysicsMaterial_wall")
